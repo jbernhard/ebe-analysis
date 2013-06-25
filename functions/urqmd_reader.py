@@ -221,9 +221,10 @@ def reader(iterable):
             ### secondary quantities
 
             # monte carlo ID from urqmd ID and 2*I3
-            # antiparticles acquire an extra negative sign
+            # for antiparticles (ityp<0), negate 2*I3 and mcid
             # checked for speed:  faster than using int(copysign(...))
-            mcid = (1 if ityp > 0 else -1) * PARTICLE_DICT[abs(ityp)][iso]
+            sign = 1 if ityp > 0 else -1
+            mcid = sign * PARTICLE_DICT[abs(ityp)][sign*iso]
 
             # transverse momentum
             pT = sqrt(px*px + py*py)
