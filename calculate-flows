@@ -1,0 +1,15 @@
+#!/usr/bin/env python3
+
+import fileinput
+import functions.flow_calculator as flows
+import functions.event_splitter as esplit
+
+
+def main():
+    with fileinput.input(openhook=fileinput.hook_compressed) as f:
+        for event in esplit.splitter(f):
+            print(*flows.calculate_vn(event))
+
+
+if __name__ == "__main__":
+    main()

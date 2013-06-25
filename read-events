@@ -1,0 +1,22 @@
+#!/usr/bin/env python3
+
+from argparse import ArgumentParser
+import fileinput
+import functions.urqmd_reader as urqmd
+
+
+parser = ArgumentParser(description='Read event files and output standard \
+        particle info.')
+parser.add_argument('files', nargs='*', help="Files to read.  Omit or use '-' \
+        to read from stdin.")
+args = parser.parse_args()
+
+
+def main():
+    with fileinput.input(openhook=fileinput.hook_compressed) as f:
+        for l in urqmd.reader(f):
+            print(*l)
+
+
+if __name__ == "__main__":
+    main()
