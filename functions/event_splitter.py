@@ -11,11 +11,6 @@ Typical usage:
 
 
 def splitter(iterable):
-    """
-    input:  several events concatenated together but separated by one or more blank lines
-    output:  yields single events, one at a time
-    """
-
     """Split events into separate objects.  Yield one event at a time.
 
     Arguments:
