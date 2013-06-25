@@ -1,14 +1,26 @@
 #!/usr/bin/env python3
 
+from argparse import ArgumentParser
 import fileinput
 import functions.flow_calculator as flows
 import functions.event_splitter as esplit
 
 
+parser = ArgumentParser(description='''Calculate flow coefficients v_n from
+        standard particle info.''')
+parser.add_argument('files', nargs='*',
+        help="Files to read.  Omit or use '-' to read from stdin.")
+parser.add_argument('--min', type=int, default=2,
+        help="Minimum v_n, default 2.")
+parser.add_argument('--max', type=int, default=6,
+        help="Minimum v_n, default 6.")
+args = parser.parse_args()
+
+
 def main():
-    with fileinput.input(openhook=fileinput.hook_compressed) as f:
+    with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
         for event in esplit.splitter(f):
-            print(*flows.calculate_vn(event))
+            print(*flows.calculate_vn(event,vnmin=args.min,vnmax=args.max))
 
 
 if __name__ == "__main__":
