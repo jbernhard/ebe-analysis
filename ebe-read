@@ -1,11 +1,11 @@
 #!/usr/bin/env python3
 
-from argparse import ArgumentParser
+import argparse
 import fileinput
 from functions.read_urqmd import read_events
 
 
-parser = ArgumentParser(description='''Read event files and output standard
+parser = argparse.ArgumentParser(description='''Read event files and output standard
         particle info.''')
 parser.add_argument('files', nargs='*', help='''Files to read.  Omit or use '-'
         to read from stdin.''')
