@@ -9,17 +9,15 @@ parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n 
         standard particle info.''')
 parser.add_argument('files', nargs='*',
         help="Files to read.  Omit or use '-' to read from stdin.")
-parser.add_argument('--min', type=int, default=2,
-        help="Minimum v_n, default 2.")
-parser.add_argument('--max', type=int, default=6,
-        help="Minimum v_n, default 6.")
+parser.add_argument('-n', '--vn', type=int, nargs=2, default=[2,6],
+        help="Range of v_n to calculate [two arguments].  Default is 2 6.")
 args = parser.parse_args()
 
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
         for event in split_events(f):
-            print(*calculate_flows(event,vnmin=args.min,vnmax=args.max))
+            print(*calculate_flows(event,vnmin=args.vn[0],vnmax=args.vn[1]))
 
 
 if __name__ == "__main__":
