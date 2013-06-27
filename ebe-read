@@ -9,12 +9,99 @@ parser = argparse.ArgumentParser(description='''Read event files and output stan
         particle info.''')
 parser.add_argument('files', nargs='*', help='''Files to read.  Omit or use '-'
         to read from stdin.''')
+parser.add_argument('-i','--ID', type=int, nargs='+',
+        help='Select particle IDs.')
+parser.add_argument('-c','--charged', action='store_true',
+        help='Select all charged particles.')
+parser.add_argument('-p','--pT', type=float, nargs='+',
+        help='''Select pT range.  If only one argument, it is interpreted as
+        'arg < pT < inf'.''')
+parser.add_argument('-n','--eta', type=float, nargs='+',
+        help='''Select eta range.  If only one argument, it is interpreted as
+        '|eta| < arg'.''')
 args = parser.parse_args()
+
+
+
+"""
+Create a filter function that can be used with python's built-in filter().  The
+function shall take standard particle info (ID,pT,phi,eta) and return True if
+all filtering criteria are met or if the line is an event separator [a blank
+line].
+
+Strategy:  Create a boolean lambda function for each criterion.  If the
+criterion was not specified, then the lambda shall always return True.  The
+filter function shall require that _all_ lambdas return True.
+
+If no filtering criteria were specified, then set the filter function to None,
+which will always return True.
+"""
+
+# if any of the relevant options were passed, need to do filtering
+if any(( args.ID, args.charged, args.pT, args.eta )):
+
+    ### particle ID
+    if args.ID:
+        IDfilter = lambda ID: ID in args.ID
+    else:
+        IDfilter = lambda ID: True
+
+    ### charged particles
+    if args.charged:
+        pass
+
+    ### pT
+    if args.pT:
+        # minimum is always first arg
+        pTmin = args.pT[0]
+
+        # maximum is either the second arg or infinity
+        if len(args.pT) == 2:
+            pTmax = args.pT[1]
+        else:
+            pTmax = float('inf')
+
+        pTfilter = lambda pT: pTmin < pT < pTmax
+    else:
+        pTfilter = lambda pT: True
+
+    ### eta
+    if args.eta:
+        # if only one arg, min = -max
+        if len(args.eta) == 1:
+            etamax = args.eta[0]
+            etamin = -etamax
+
+        # min and max specified independently
+        else:
+            etamin = args.eta[0]
+            etamax = args.eta[1]
+
+        etafilter = lambda eta: etamin < eta < etamax
+    else:
+        etafilter = lambda eta: True
+
+
+    ### the full filtering function
+    def filterfunction(x):
+        try:
+            mcid,pT,phi,eta = x
+        except ValueError:
+            # this is a blank line [event separator]
+            return True
+
+        # must satisfy all filtering criteria
+        return all(( IDfilter(mcid), pTfilter(pT), etafilter(eta) ))
+
+# no filtering options were passed
+else:
+    filterfunction = None
+
 
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        for l in read_events(f):
+        for l in filter(filterfunction, read_events(f)):
             print(*l)
 
 
