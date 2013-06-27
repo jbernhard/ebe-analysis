@@ -1,4 +1,4 @@
-""" 
+"""
 Reads urqmd event files and generates standard particle information.
 
 Typical usage:
@@ -137,17 +137,17 @@ PARTICLE_DICT = {
     130: {-2: -30213, 0: 30113, 2: 30213},
     # omega(1600)
     131: {0: 60223},
-    # phi(1850)     
+    # phi(1850)
     132: {0: 337}
 }
 
 
 
 def ffloat(x):
-    """Convert a Fortran double to a Python float.  
-    
+    """Convert a Fortran double to a Python float.
+
     Python does not understand 'D' in Fortran doubles so replace it with 'E'.
-    
+
     Arguments:
     x -- bytes or string object containing a Fortran double
 
