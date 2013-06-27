@@ -2,6 +2,8 @@
 
 import argparse
 import fileinput
+import os.path
+import sqlite3
 from functions import read_events
 
 
@@ -41,14 +43,26 @@ which will always return True.
 if any(( args.ID, args.charged, args.pT, args.eta )):
 
     ### particle ID
+    #if args.ID:
+    #    IDfilter = lambda ID: ID in args.ID
+    #else:
+    #    IDfilter = lambda ID: True
     if args.ID:
-        IDfilter = lambda ID: ID in args.ID
+        selected_particles = args.ID
     else:
-        IDfilter = lambda ID: True
+        selected_particles = []
 
     ### charged particles
     if args.charged:
-        pass
+        conn = sqlite3.connect(os.path.join(os.path.dirname(__file__),'include/particles.db'))
+        selected_particles.extend(
+            [row[0] for row in conn.execute('select id from particles where charge != 0')]
+            )
+
+    if selected_particles:
+        IDfilter = lambda ID: abs(ID) in selected_particles
+    else:
+        IDfilter = lambda ID: True
 
     ### pT
     if args.pT:
