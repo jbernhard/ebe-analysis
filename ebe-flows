@@ -2,8 +2,7 @@
 
 import argparse
 import fileinput
-from functions.calculate_flows import calculate_flows
-from functions.split_events import split_events
+from functions import calculate_flows, split_events
 
 
 parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n from

@@ -2,7 +2,7 @@
 
 import argparse
 import fileinput
-from functions.read_urqmd import read_events
+from functions import read_events
 
 
 parser = argparse.ArgumentParser(description='''Read event files and output standard
