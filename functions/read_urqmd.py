@@ -3,10 +3,9 @@ Reads urqmd event files and generates standard particle information.
 
 Typical usage:
 
->>> import urqmd_reader
->>> with open(file) as f:
-         for l in urqmd_reader.reader(f):
-             process(l)
+>>> from functions import read_events
+>>> for l in event_reader(iterable):
+         process(l)
 """
 
 

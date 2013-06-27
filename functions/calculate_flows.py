@@ -3,8 +3,9 @@ Calculates flow coefficients v_n from standard particle information.
 
 Typical usage:
 
->>> import flow_calculator
->>> vn = flow_calculator.calculate_vn(event)
+>>> from functions import calculate_flows
+>>> for event in events:
+        process(calculate_flows(event))
 """
 
 

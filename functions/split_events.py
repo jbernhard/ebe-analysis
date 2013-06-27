@@ -3,10 +3,9 @@ Split events separated by blank lines into separate objects.
 
 Typical usage:
 
->>> import event_splitter
->>> with open(file) as f:
-        for event in event_splitter.splitter(f):
-            process(event)
+>>> from functions import split_events
+>>> for event in split_events(iterable):
+        process(event)
 """
 
 
