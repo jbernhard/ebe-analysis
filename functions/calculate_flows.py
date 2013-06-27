@@ -12,7 +12,7 @@ import numpy as np
 
 
 
-def calculate_vn(event,vnmin=2,vnmax=6):
+def calculate_flows(event,vnmin=2,vnmax=6):
     """Calculate flow coefficients.
 
     Arguments:

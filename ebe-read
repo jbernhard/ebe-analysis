@@ -2,7 +2,7 @@
 
 from argparse import ArgumentParser
 import fileinput
-import functions.urqmd_reader as urqmd
+from functions.read_urqmd import read_events
 
 
 parser = ArgumentParser(description='''Read event files and output standard
@@ -14,7 +14,7 @@ args = parser.parse_args()
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        for l in urqmd.reader(f):
+        for l in read_events(f):
             print(*l)
 
 

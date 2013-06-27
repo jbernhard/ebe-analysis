@@ -165,7 +165,7 @@ def ffloat(x):
 
 
 
-def reader(iterable):
+def read_events(iterable):
     """Generate standard particle info from urqmd.
 
     Arguments:

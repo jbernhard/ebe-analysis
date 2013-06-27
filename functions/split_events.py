@@ -10,7 +10,7 @@ Typical usage:
 """
 
 
-def splitter(iterable):
+def split_events(iterable):
     """Split events into separate objects.  Yield one event at a time.
 
     Arguments:
