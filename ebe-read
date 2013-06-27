@@ -12,14 +12,14 @@ parser = argparse.ArgumentParser(description='''Read event files and output stan
 parser.add_argument('files', nargs='*', help='''Files to read.  Omit or use '-'
         to read from stdin.''')
 parser.add_argument('-i','--ID', type=int, nargs='+',
-        help='Select particle IDs.')
+        help='Particle IDs.')
 parser.add_argument('-c','--charged', action='store_true',
-        help='Select all charged particles.')
+        help='Shortcut for all charged particles.')
 parser.add_argument('-p','--pT', type=float, nargs='+',
-        help='''Select pT range.  If only one argument, it is interpreted as
+        help='''pT range.  If only one argument, it is interpreted as
         'arg < pT < inf'.''')
 parser.add_argument('-n','--eta', type=float, nargs='+',
-        help='''Select eta range.  If only one argument, it is interpreted as
+        help='''eta range.  If only one argument, it is interpreted as
         '|eta| < arg'.''')
 args = parser.parse_args()
 
