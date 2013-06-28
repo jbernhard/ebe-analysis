@@ -1,0 +1,26 @@
+#!/usr/bin/env python3
+
+
+import fileinput
+from lib import urqmd
+#from lib import Particle, Event
+
+def main():
+    #p = Particle(ID=211,px=1.1,pz=-0.5,py=2.2)
+    #print(p.properties())
+    #print(p)
+
+    #e = Event([p,p,p,p])
+    #print(e)
+    #for p in e.particles():
+    #    print(p)
+    #print(e.calculate_flows())
+    #print(e.calculate_flows())
+
+    with fileinput.input(openhook=fileinput.hook_compressed) as f:
+        urqmd.output(f)
+
+
+
+if __name__ == "__main__":
+    main()
