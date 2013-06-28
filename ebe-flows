@@ -9,7 +9,7 @@ parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n 
         standard particle info.''')
 parser.add_argument('files', nargs='*',
         help="Files to read.  Omit or use '-' to read from stdin.")
-parser.add_argument('-n', '--vn', type=int, nargs=2, default=[2,6],
+parser.add_argument('-n', '--vn', type=int, nargs=2, metavar=('min','max'), default=[2,6],
         help="Range of v_n to calculate [two arguments].  Default is 2 6.")
 args = parser.parse_args()
 
