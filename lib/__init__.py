@@ -1,6 +1,3 @@
 """
-docstring
+Classes for EbE analysis.
 """
-
-#from .particle import Particle
-#from .event import Event
