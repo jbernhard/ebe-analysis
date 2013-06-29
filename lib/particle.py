@@ -3,7 +3,10 @@ docstring
 """
 
 
-from math import atan2, log, sqrt
+import math
+
+
+ZERO = 1e-16
 
 
 class MissingValueError(Exception):
@@ -17,41 +20,22 @@ class Particle:
         if not ( (px and py and pz) or (pT and phi and eta) ):
             raise MissingValueError('Must provide pT,phi,eta or px,py,pz.')
 
-        self._ID = ID
+        self.ID = ID
 
-        self._pT = pT or self._calc_pT(px=px,py=py)
-        self._phi = phi or self._calc_phi(px=px,py=py)
-        self._eta = eta or self._calc_eta(px=px,py=py,pz=pz)
-
+        self.pT = pT or self._calc_pT(px,py)
+        self.phi = phi or self._calc_phi(px,py)
+        self.eta = eta or self._calc_eta(px,py,pz)
 
     def __str__(self):
-        return '{} {} {} {}'.format(self._ID, self._pT, self._phi, self._eta)
+        return '{} {} {} {}'.format(self.ID, self.pT, self.phi, self.eta)
 
 
-    def _calc_pT(self,px=None,py=None):
+    def _calc_pT(self,px,py,sqrt=math.sqrt):
         return sqrt(px*px + py*py)
 
-    def _calc_phi(self,px=None,py=None):
+    def _calc_phi(self,px,py,atan2=math.atan2):
         return atan2(py,px)
 
-    def _calc_eta(self,px=None,py=None,pz=None):
+    def _calc_eta(self,px,py,pz,sqrt=math.sqrt,log=math.log):
         pmag = sqrt(px*px + py*py + pz*pz)
-        return 0.5*log((pmag+pz)/max(pmag-pz,1e-16))   # avoid division by zero
-
-
-    def ID(self):
-        return self._ID
-
-    def pT(self):
-        return self._pT
-
-    def phi(self):
-        return self._phi
-
-    def eta(self):
-        return self._eta
-
-
-    def standard_info(self):
-        #return dict(ID=self._ID, pT=self._pT, phi=self._phi, eta=self._eta)
-        return self._ID, self._pT, self._phi, self._eta
+        return 0.5*log((pmag+pz)/max(pmag-pz,ZERO))   # avoid division by zero
