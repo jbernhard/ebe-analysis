@@ -2,7 +2,8 @@
 
 import argparse
 import fileinput
-from functions import calculate_flows, split_events
+#from functions import calculate_flows, split_events
+from lib import event
 
 
 parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n from
@@ -19,8 +20,10 @@ vnmin,vnmax = args.vn
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        for event in split_events(f):
-            print(*calculate_flows(event,vnmin=vnmin,vnmax=vnmax))
+        #for event in split_events(f):
+        #    print(*calculate_flows(event,vnmin=vnmin,vnmax=vnmax))
+        or e in event.frominput(f):
+           print(*e.flows(vnmin=vnmin,vnmax=vnmax))
 
 
 if __name__ == "__main__":
