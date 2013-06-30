@@ -4,6 +4,56 @@ An Event is a collection of Particles.
 
 
 import numpy as np
+from .particle import Particle
+
+
+def frominput(iterable):
+    """
+    Convenience function to generate event objects from standard particle info,
+    such as is output by urqmd.tostdout()
+
+    Arguments
+    ---------
+    iterable -- containing standard particle lines [bytes or strings]
+
+    Yields
+    ------
+    Event()
+
+    """
+
+    # init. empty list of particles
+    particles = []
+
+    # scan through lines
+    for l in iterable:
+        # if l is a blank line, then l.strip() will be an empty string
+
+        if l.strip():
+            # this is a particle line
+            # instantiate a new Particle and add it to the list
+
+            # standard order is ID,pT,phi,eta
+            fields = l.split()
+            particles.append(Particle(
+                    ID=int(fields[0]),
+                    pT=float(fields[1]),
+                    phi=float(fields[2]),
+                    eta=float(fields[3])
+                )
+            )
+
+        else:
+            # empty line => yield current event, initialize new one
+            if particles:
+                yield Event(particles)
+                particles = []
+
+    # lines have been exhausted
+    # typically there will be one last event to yield
+    if particles:
+        yield Event(particles)
+
 
 
 class Event:
