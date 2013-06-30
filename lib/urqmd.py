@@ -143,6 +143,10 @@ def tostdout(iterable):
     stdout. Lines are printed as soon Particles are created; Events/Batches are
     never created.  Blank lines separates events.
 
+    Arguments
+    ---------
+    iterable -- for instantiating class UrQMD
+
     """
 
     _urqmd = UrQMD(iterable)
