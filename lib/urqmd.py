@@ -178,7 +178,7 @@ class UrQMD:
         # python does not understand 'D' in fortran doubles so replace it with 'E'
 
         # must handle bytes / string cases separately
-        if type(x) == bytes:
+        if isinstance(x,bytes):
             return float(x.replace(b'D',b'E'))
         else:
             return float(x.replace('D','E'))
