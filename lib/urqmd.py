@@ -11,7 +11,7 @@ from .particle import Particle
 PARTICLE_LINE_LENGTH = 435
 
 
-# to convert from urqmd to monte carlo ID
+# dictionary to convert from urqmd ityp and 2*I3 to monte carlo ID
 # adapted from ityp2pdg.f in the urqmd source
 # structure is ityp:{2i3:mcid}
 PARTICLE_DICT = {
