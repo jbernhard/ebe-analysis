@@ -139,9 +139,9 @@ PARTICLE_DICT = {
 
 def tostdout(iterable):
     """
-    Convenience function to quickly dump standard particle information to
-    stdout. Lines are printed as soon Particles are created; Events/Batches are
-    never created.  Blank lines separates events.
+    Dump standard particle information to stdout. Lines are printed as soon as
+    Particles are created; Events/Batches are never created.  Blank lines
+    separate events.
 
     Arguments
     ---------
@@ -165,7 +165,7 @@ class UrQMD:
     -------------
     >>> UrQMD(iterable)
 
-    The iterable must generate UrQMD particle lines as either bytes or strings.
+    The iterable must provide UrQMD particle lines as either bytes or strings.
 
     """
 

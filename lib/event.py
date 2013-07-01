@@ -9,8 +9,8 @@ from .particle import Particle
 
 def frominput(iterable):
     """
-    Convenience function to generate event objects from standard particle info,
-    such as is output by urqmd.tostdout()
+    Generate Events from standard particle info, such as is output by
+    urqmd.tostdout().
 
     Arguments
     ---------
