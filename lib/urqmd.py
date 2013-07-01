@@ -157,12 +157,10 @@ def tostdout(iterable):
 
 class UrQMD:
     """
-    The base implementation of the module.  It converts UrQMD lines to Particle
-    objects.
+    Converts UrQMD lines to Particle objects.
 
-
-    Instantiation
-    -------------
+    Usage
+    -----
     >>> UrQMD(iterable)
 
     The iterable must provide UrQMD particle lines as either bytes or strings.
@@ -216,7 +214,6 @@ class UrQMD:
     def particles(self):
         """
         Generate Particle objects.
-
 
         Yields
         ------

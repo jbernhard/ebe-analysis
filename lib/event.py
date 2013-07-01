@@ -58,12 +58,10 @@ def frominput(iterable):
 
 class Event:
     """
-    The base implementation of the module.  It stores a list of Particles and
-    provides methods for calculating observables.
+    Stores a list of Particles and provides methods for calculating observables.
 
-
-    Instantiation
-    -------------
+    Usage
+    -----
     >>> Event([particle1, particle2, ...])
 
     """

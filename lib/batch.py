@@ -8,11 +8,10 @@ import numpy as np
 
 class Batch:
     """
-    The implementation of the module.  It stores a list of Events.
+    Stores a list of Events.
 
-
-    Instantiation
-    -------------
+    Usage
+    -----
     >>> Batch([event1, event2, ...])
 
     """

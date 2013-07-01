@@ -14,21 +14,16 @@ class MissingValueError(Exception):
 
 class Particle:
     """
-    The base implementation of the module.  It stores standard particle
-    information.
+    Stores standard particle information.
 
-
-    Instantiation
-    -------------
+    Usage
+    -----
     >>> Particle(ID=ID,px=px,py=py,pz=pz)
     >>> Particle(ID=ID,pT=pT,phi=phi,eta=eta)
 
     In the former case, pT,phi,eta are calculated from px,py,pz via the methods
     _calc_<var>.  In both cases, pT,phi,eta become attributes of the instance.
 
-
-    Notes
-    -----
     The __str__ method has been manually defined to return standard particle
     information.  This is very convenient for printing to stdout, e.g.
 
