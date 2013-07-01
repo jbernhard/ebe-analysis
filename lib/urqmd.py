@@ -150,15 +150,6 @@ def _ffloat(x):
         return float(x.replace('D','E'))
 
 
-def _mcid(ityp,iso):
-    # determine Monte Carlo ID from UrQMD ityp and 2*I3
-    # for antiparticles (ityp<0), negate 2*I3 and MCID
-
-    # checked for speed:  faster than using int(copysign(...))
-    sign = 1 if ityp > 0 else -1
-    return sign * PARTICLE_DICT[abs(ityp)][sign*iso]
-
-
 def particles(iterable):
     """
     Converts UrQMD lines to Particle objects.
@@ -204,8 +195,15 @@ def particles(iterable):
             py = _ffloat(line[145:168])
             pz = _ffloat(line[169:192])
 
-            # ityp and 2*I3 => Monte Carlo ID
-            ID = _mcid(int(line[218:221]), int(line[222:224]))
+            # UrQMD ityp and 2*I3
+            ityp = int(line[218:221])
+            iso = int(line[222:224])
+
+            # determine Monte Carlo ID
+            # for antiparticles (ityp<0), negate 2*I3 and MCID
+            # checked for speed:  faster than using int(copysign(...))
+            sign = 1 if ityp > 0 else -1
+            ID = sign * PARTICLE_DICT[abs(ityp)][sign*iso]
 
 
             # yield the Particle
