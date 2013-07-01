@@ -1,5 +1,5 @@
 """
-A Particle contains information about physical particles.
+A Particle contains information about a physical particle.
 """
 
 
