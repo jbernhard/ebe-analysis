@@ -74,7 +74,7 @@ class ParticleFilter:
     >>> pf = ParticleFilter(criterion1,criterion2,...)
 
     Allowed criteria are:
-    IDlist -- a list of particle IDs
+    ID -- a list of particle IDs
     charged -- boolean, shortcut to select all charged particles
     pTmin,pTmax -- range of pT; can omit either min or max
     etamin,etamax -- range of eta; if only etamax, assume |eta| < etamax;
@@ -93,7 +93,7 @@ class ParticleFilter:
 
     """
 
-    def __init__(self,IDlist=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax=None):
+    def __init__(self,ID=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax=None):
         # init. empty list of filters
         self._filters = []
 
@@ -101,8 +101,8 @@ class ParticleFilter:
         ### each lambda is a boolean function of Particle objects
 
         # match particle ID
-        if IDlist:
-            self._filters.append(lambda Particle: Particle.ID in IDlist)
+        if ID:
+            self._filters.append(lambda Particle: Particle.ID in ID)
 
         # match charged particles
         if charged:
