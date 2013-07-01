@@ -4,6 +4,7 @@ A Particle contains information about a physical particle.
 
 
 import math
+from .pdg import PDG
 
 
 
@@ -106,9 +107,11 @@ class ParticleFilter:
 
         # match charged particles
         if charged:
-            # need to implement this
-            #self._filters.append(lambda Particle: Particle.ID in ...)
-            pass
+            # retrieve ID list from PDG class
+            pdg = PDG()
+            self._charged = pdg.charged()
+            del pdg
+            self._filters.append(lambda Particle: abs(Particle.ID) in self._charged)
 
 
         # match pT range
