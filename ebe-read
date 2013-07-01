@@ -2,121 +2,61 @@
 
 import argparse
 import fileinput
-import os.path
-import sqlite3
-from functions import read_events
+from lib import urqmd
+from lib.particle import ParticleFilter
 
 
-parser = argparse.ArgumentParser(description='''Read event files and output standard
-        particle info.''')
+parser = argparse.ArgumentParser(description='''Read UrQMD files and output standard
+        particle info.  Optionally filter particles with the following arguments.''')
 parser.add_argument('files', nargs='*', help='''Files to read.  Omit or use '-'
         to read from stdin.''')
-parser.add_argument('-i','--ID', type=int, nargs='+',
-        help='Particle IDs.')
-parser.add_argument('-c','--charged', action='store_true',
+parser.add_argument('--ID', type=int, nargs='+',
+        help='Particle IDs, space separated.')
+parser.add_argument('--charged', action='store_true',
         help='Shortcut for all charged particles.')
-parser.add_argument('-p','--pT', type=float, nargs='+',
-        help='''pT range.  If only one argument, it is interpreted as
-        'arg < pT < inf'.''')
-parser.add_argument('-n','--eta', type=float, nargs='+',
-        help='''eta range.  If only one argument, it is interpreted as
-        '|eta| < arg'.''')
+parser.add_argument('--pTmin', type=float, help='pT minimum.')
+parser.add_argument('--pTmax', type=float, help='pT maximum.')
+parser.add_argument('--etamin', type=float, help='eta minimum; if no etamax, \
+        equivalent to etamin < |eta|.')
+parser.add_argument('--etamax', type=float, help='eta maximum; if no etamin, \
+        equivalent to |eta| < etamax.')
 args = parser.parse_args()
 
 
+# convert the args Namespace to a dictionary
+argdict = vars(args)
 
-"""
-Create a filter function that can be used with python's built-in filter().  The
-function shall take standard particle info (ID,pT,phi,eta) and return True if
-all filtering criteria are met or if the line is an event separator [a blank
-line].
-
-Strategy:  Create a boolean lambda function for each criterion.  If the
-criterion was not specified, then the lambda shall always return True.  The
-filter function shall require that _all_ lambdas return True.
-
-If no filtering criteria were specified, then set the filter function to None,
-which will always return True.
-"""
-
-# if any of the relevant options were passed, need to do filtering
-if any(( args.ID, args.charged, args.pT, args.eta )):
-
-    ### particle ID
-    #if args.ID:
-    #    IDfilter = lambda ID: ID in args.ID
-    #else:
-    #    IDfilter = lambda ID: True
-    if args.ID:
-        selected_particles = args.ID
-    else:
-        selected_particles = []
-
-    ### charged particles
-    if args.charged:
-        conn = sqlite3.connect(os.path.join(os.path.dirname(__file__),'include/particles.db'))
-        selected_particles.extend(
-            [row[0] for row in conn.execute('select id from particles where charge != 0')]
-            )
-
-    if selected_particles:
-        IDfilter = lambda ID: abs(ID) in selected_particles
-    else:
-        IDfilter = lambda ID: True
-
-    ### pT
-    if args.pT:
-        # minimum is always first arg
-        pTmin = args.pT[0]
-
-        # maximum is either the second arg or infinity
-        if len(args.pT) == 2:
-            pTmax = args.pT[1]
-        else:
-            pTmax = float('inf')
-
-        pTfilter = lambda pT: pTmin < pT < pTmax
-    else:
-        pTfilter = lambda pT: True
-
-    ### eta
-    if args.eta:
-        # if only one arg, min = -max
-        if len(args.eta) == 1:
-            etamax = args.eta[0]
-            etamin = -etamax
-
-        # min and max specified independently
-        else:
-            etamin = args.eta[0]
-            etamax = args.eta[1]
-
-        etafilter = lambda eta: etamin < eta < etamax
-    else:
-        etafilter = lambda eta: True
-
-
-    ### the full filtering function
-    def filterfunction(x):
-        try:
-            mcid,pT,phi,eta = x
-        except ValueError:
-            # this is a blank line [event separator]
-            return True
-
-        # must satisfy all filtering criteria
-        return all(( IDfilter(mcid), pTfilter(pT), etafilter(eta) ))
-
-# no filtering options were passed
-else:
-    filterfunction = None
-
+# pop the list of files
+# argdict now holds only the particle filtering options
+files = argdict.pop('files')
 
 
 def main():
-    with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        for l in filter(filterfunction, read_events(f)):
-            print(*l)
+    with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
+
+        # init. the urqmd particle generator
+        particles = urqmd.particles(f)
+
+        # handle particles differently with filtering
+        if any(argdict.values()):
+            # there is at least one of the filtering option
+            # define a filter function
+            pf = ParticleFilter(**argdict)
+
+            for p in particles:
+                # output this particle if it passes the filter
+                if p:
+                    if pf(p):
+                        print(p)
+                else:
+                    # blank line to separate events
+                    print()
+
+        else:
+            # no filtering options
+            # output all particles with blank lines to separate events
+            for p in particles:
+                print(p or '')
 
 
 if __name__ == "__main__":
