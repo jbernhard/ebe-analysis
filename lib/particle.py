@@ -102,7 +102,7 @@ class ParticleFilter:
 
         # match particle ID
         if ID:
-            self._filters.append(lambda Particle: Particle.ID in ID)
+            self._filters.append(lambda Particle: abs(Particle.ID) in ID)
 
         # match charged particles
         if charged:
