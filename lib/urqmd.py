@@ -137,133 +137,85 @@ PARTICLE_DICT = {
 
 
 
-def tostdout(iterable):
-    """
-    Dump standard particle information to stdout. Lines are printed as soon as
-    Particles are created; Events/Batches are never created.  Blank lines
-    separate events.
-
-    Arguments
-    ---------
-    iterable -- for instantiating class UrQMD
-
-    """
-
-    _urqmd = UrQMD(iterable)
-    for p in _urqmd.particles():
-        print(p or '')
 
 
+def _ffloat(x):
+    # convert a fortran double to a python float
+    # python does not understand 'D' in fortran doubles so replace it with 'E'
 
-class UrQMD:
+    # must handle bytes / string cases separately
+    if isinstance(x,bytes):
+        return float(x.replace(b'D',b'E'))
+    else:
+        return float(x.replace('D','E'))
+
+
+def _mcid(ityp,iso):
+    # determine Monte Carlo ID from UrQMD ityp and 2*I3
+    # for antiparticles (ityp<0), negate 2*I3 and MCID
+
+    # checked for speed:  faster than using int(copysign(...))
+    sign = 1 if ityp > 0 else -1
+    return sign * PARTICLE_DICT[abs(ityp)][sign*iso]
+
+
+def particles(iterable):
     """
     Converts UrQMD lines to Particle objects.
 
-    Usage
-    -----
-    >>> UrQMD(iterable)
+    Arguments
+    ---------
+    iterable -- must provide UrQMD particle lines as either bytes or strings
 
-    The iterable must provide UrQMD particle lines as either bytes or strings.
+    Yields
+    ------
+    Particle() or None
+
+    None serves as a separator between events.
 
     """
 
-    def __init__(self,iterable):
-        self._iterable = iterable
+    # use this boolean to keep track of event headers
+    # files should begin with a header
+    header = True
 
 
-    def _ffloat(self,x):
-        # convert a fortran double to a python float
-        # python does not understand 'D' in fortran doubles so replace it with 'E'
+    for line in iterable:
 
-        # must handle bytes / string cases separately
-        if isinstance(x,bytes):
-            return float(x.replace(b'D',b'E'))
+        # determine if this is a particle line via its length
+
+        if len(line) == PARTICLE_LINE_LENGTH:
+            # this is a particle line
+
+            if header:
+                # switch out of header mode
+                header = False
+
+
+            # extract necessary values
+
+            # loops are not efficient for only a few calls
+            # neither is map()
+            # faster to manually call the functions
+            # faster to extract values separately than e.g. line.split()
+
+            # momenta
+            px = _ffloat(line[121:144])
+            py = _ffloat(line[145:168])
+            pz = _ffloat(line[169:192])
+
+            # ityp and 2*I3 => Monte Carlo ID
+            ID = _mcid(int(line[218:221]), int(line[222:224]))
+
+
+            # yield the Particle
+            yield Particle(ID=ID,px=px,py=py,pz=pz)
+
         else:
-            return float(x.replace('D','E'))
+            # this is a header line
 
-
-    def _mcid(self,ityp,iso):
-        # determine Monte Carlo ID from UrQMD ityp and 2*I3
-        # for antiparticles (ityp<0), negate 2*I3 and MCID
-
-        # checked for speed:  faster than using int(copysign(...))
-        sign = 1 if ityp > 0 else -1
-        return sign * PARTICLE_DICT[abs(ityp)][sign*iso]
-
-
-    #def batch(self):
-    #    _batch = Batch()
-
-    #    for e in self.events():
-    #        _batch.add_event(e)
-
-    #    return _batch
-
-
-    #def _events(self):
-    #    _event = []
-
-    #    for p in self._particles():
-    #        if p:
-    #            _event.append(p)
-    #        else:
-    #            yield Event(_event)
-    #            _event = []
-
-
-    def particles(self):
-        """
-        Generate Particle objects.
-
-        Yields
-        ------
-        Particle() or None
-
-        None serves as a separator between events.
-
-        """
-
-        # use this boolean to keep track of event headers
-        # files should begin with a header
-        header = True
-
-
-        for line in self._iterable:
-
-            # determine if this is a particle line via its length
-
-            if len(line) == PARTICLE_LINE_LENGTH:
-                # this is a particle line
-
-                if header:
-                    # switch out of header mode
-                    header = False
-
-
-                # extract necessary values
-
-                # loops are not efficient for only a few calls
-                # neither is map()
-                # faster to manually call the functions
-                # faster to extract values separately than e.g. line.split()
-
-                # momenta
-                px = self._ffloat(line[121:144])
-                py = self._ffloat(line[145:168])
-                pz = self._ffloat(line[169:192])
-
-                # ityp and 2*I3 => Monte Carlo ID
-                ID = self._mcid(int(line[218:221]), int(line[222:224]))
-
-
-                # yield the Particle
-                yield Particle(ID=ID,px=px,py=py,pz=pz)
-
-            else:
-                # this is a header line
-
-                if not header:
-                    # switch to header mode
-                    header = True
-                    # yield None to separate events
-                    yield
+            if not header:
+                # switch to header mode
+                header = True
+                # yield None to separate events
+                yield
