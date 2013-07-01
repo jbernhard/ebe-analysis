@@ -6,10 +6,6 @@ A Particle contains information about physical particles.
 import math
 
 
-# small quantity > 0
-# used to avoid division by zero
-ZERO = 1e-16
-
 
 class MissingValueError(Exception):
     """ Trivial Exception subclass.  For display purposes. """
@@ -69,4 +65,4 @@ class Particle:
 
     def _calc_eta(self,px,py,pz,sqrt=math.sqrt,log=math.log):
         pmag = sqrt(px*px + py*py + pz*pz)
-        return 0.5*log((pmag+pz)/max(pmag-pz,ZERO))   # avoid division by zero
+        return 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
