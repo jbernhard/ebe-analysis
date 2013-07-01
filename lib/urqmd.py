@@ -3,8 +3,8 @@ Read UrQMD output files.
 """
 
 from .particle import Particle
-from .event import Event
-from .batch import Batch
+#from .event import Event
+#from .batch import Batch
 
 
 # urqmd particle lines are 435 chars long [including the two chars of '\n']
