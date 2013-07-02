@@ -2,7 +2,6 @@
 
 import argparse
 import fileinput
-#from functions import calculate_flows, split_events
 from lib import event
 
 
@@ -20,10 +19,8 @@ vnmin,vnmax = args.vn
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        #for event in split_events(f):
-        #    print(*calculate_flows(event,vnmin=vnmin,vnmax=vnmax))
         for e in event.frominput(f):
-           print(*e.flows(vnmin=vnmin,vnmax=vnmax))
+            print(*e.flows(vnmin,vnmax))
 
 
 if __name__ == "__main__":
