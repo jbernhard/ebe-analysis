@@ -9,8 +9,7 @@ from .particle import Particle
 
 def frominput(iterable):
     """
-    Generate Events from standard particle info, such as is output by
-    urqmd.tostdout().
+    Generate Events from standard particle info.
 
     Arguments
     ---------
@@ -29,31 +28,29 @@ def frominput(iterable):
     for l in iterable:
         # if l is a blank line, then l.strip() will be an empty string
 
-        if l.strip():
-            # this is a particle line
-            # instantiate a new Particle and add it to the list
-
-            # standard order is ID,pT,phi,eta
-            fields = l.split()
-            particles.append(Particle(
-                    ID=int(fields[0]),
-                    pT=float(fields[1]),
-                    phi=float(fields[2]),
-                    eta=float(fields[3])
-                )
-            )
-
-        else:
-            # empty line => yield current event, initialize new one
+        if l.isspace():
+            # this is a blank line => have reached the end of this event
             if particles:
                 yield Event(particles)
                 particles = []
+
+        else:
+            # this is a particle line
+            ID,pT,phi,eta = l.split()
+
+            # create a new Particle and add it to the list
+            particles.append(Particle(
+                    ID=int(ID),
+                    pT=float(pT),
+                    phi=float(phi),
+                    eta=float(eta)
+                )
+            )
 
     # lines have been exhausted
     # typically there will be one last event to yield
     if particles:
         yield Event(particles)
-
 
 
 class Event:
