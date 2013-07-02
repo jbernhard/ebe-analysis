@@ -22,7 +22,7 @@ def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
         #for event in split_events(f):
         #    print(*calculate_flows(event,vnmin=vnmin,vnmax=vnmax))
-        or e in event.frominput(f):
+        for e in event.frominput(f):
            print(*e.flows(vnmin=vnmin,vnmax=vnmax))
 
 
