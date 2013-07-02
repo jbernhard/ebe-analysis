@@ -7,12 +7,6 @@ import math
 from .pdg import PDG
 
 
-
-class MissingValueError(Exception):
-    """ Trivial Exception subclass.  For display purposes. """
-    pass
-
-
 class Particle:
     """
     Stores standard particle information.
@@ -35,11 +29,6 @@ class Particle:
     """
 
     def __init__(self,ID=None,px=None,py=None,pz=None,pT=None,phi=None,eta=None):
-        if not ID:
-            raise MissingValueError('Must provide a particle ID.')
-        if not ( (px and py and pz) or (pT and phi and eta) ):
-            raise MissingValueError('Must provide pT,phi,eta or px,py,pz.')
-
         self.ID = ID
 
         self.pT = pT or self._calc_pT(px,py)
