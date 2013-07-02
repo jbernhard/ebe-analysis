@@ -65,34 +65,20 @@ class Event:
 
     def __init__(self,particles=[]):
         self._particles = particles
-        self._vn = []
 
 
     def _phi(self):
-        # a list of phi for each Particle in the Event
-        return [p.phi for p in self._particles]
+        # phi of each Particle in the Event
+        return np.array([p.phi for p in self._particles])
 
 
-    def _calc_flows(self,vnmin=2,vnmax=6):
-        # event-plane method
-        phi = np.asarray(self._phi(), dtype='float128')
-
-        for n in range(vnmin,vnmax+1):
-            vx = np.mean(np.cos(n*phi))
-            vy = np.mean(np.sin(n*phi))
-            self._vn.extend([vx,vy])
-
-
-    def flows(self,vnmin=2,vnmax=6):
+    def flows(self,vnmin,vnmax,mean=np.mean,sin=np.sin,cos=np.cos):
         """
-        Retrieve the Event's flow coefficients v_n.  Only do the calculation if
-        necessary.
-
+        Calculate the Event's flow coefficients v_n.
 
         Arguments
         ---------
-        vnmin, vnmax -- Range of v_n to calculate.
-
+        vnmin, vnmax -- range of v_n to calculate
 
         Returns
         -------
@@ -100,7 +86,14 @@ class Event:
 
         """
 
-        if not self._vn:
-            self._calc_flows(vnmin,vnmax)
+        self._vn = []
+
+        phi = self._phi()
+
+        for n in range(vnmin,vnmax+1):
+            # event-plane method
+            vx = mean(cos(n*phi))
+            vy = mean(sin(n*phi))
+            self._vn.extend([vx,vy])
 
         return self._vn
