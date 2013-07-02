@@ -136,9 +136,6 @@ PARTICLE_DICT = {
 }
 
 
-
-
-
 def _ffloat(x):
     # convert a fortran double to a python float
     # python does not understand 'D' in fortran doubles so replace it with 'E'

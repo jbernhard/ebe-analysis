@@ -53,7 +53,6 @@ class Particle:
         return 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
 
 
-
 class ParticleFilter:
     """
     Creates a function to filter Particles with specified criteria.  The

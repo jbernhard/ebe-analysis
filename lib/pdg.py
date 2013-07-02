@@ -8,10 +8,8 @@ import sqlite3
 import urllib.request
 
 
-
 # database where PDG data will be stored, relative to this file's location
 dbname = 'pdg.db'
-
 
 # URL of PDG file containing particle info
 pdgurl = 'http://pdg.lbl.gov/2012/mcdata/mass_width_2012.mcd'
@@ -33,7 +31,6 @@ pdgurl = 'http://pdg.lbl.gov/2012/mcdata/mass_width_2012.mcd'
 #           This field is for ease of visual examination of the file and
 #           should not be taken as a standardized presentation of
 #           particle names.
-
 
 
 class PDG:
@@ -69,7 +66,6 @@ class PDG:
 
         if shouldmakedb:
             self._makedb()
-
 
 
     def __del__(self):
