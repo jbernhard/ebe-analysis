@@ -5,11 +5,12 @@ import fileinput
 from lib import event
 
 
-parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n from
-        standard particle info.''')
+parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n
+        from standard particle info.''',
+        epilog='Output format: vn_min_x vn_min_x ...  vn_max_x vn_max_y')
 parser.add_argument('files', nargs='*',
         help="Files to read.  Omit or use '-' to read from stdin.")
-parser.add_argument('-n', '--vn', type=int, nargs=2, metavar=('min','max'), default=[2,6],
+parser.add_argument('--vn', type=int, nargs=2, metavar=('min','max'), default=[2,6],
         help="Range of v_n to calculate [two arguments].  Default is 2 6.")
 args = parser.parse_args()
 
