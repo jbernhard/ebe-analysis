@@ -92,8 +92,9 @@ class Event:
 
         for n in range(vnmin,vnmax+1):
             # event-plane method
-            vx = mean(cos(n*phi))
-            vy = mean(sin(n*phi))
+            nphi = n*phi
+            vx = mean(cos(nphi))
+            vy = mean(sin(nphi))
             self._vn.extend([vx,vy])
 
         return self._vn
