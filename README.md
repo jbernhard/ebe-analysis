@@ -10,7 +10,7 @@ Tools for analyzing event-by-event heavy-ion collision simulation data.
 Each executable is a small Python script designed to gracefully accomplish a single task.
 
 * **Flexible input:**
-Executables transparently read from stdin or files on disk.  Compressed files (gzip/bzip2) are handled transparently.  Accomplished via Python's
+Executables read from stdin or files on disk.  Compressed files (gzip/bzip2) are handled transparently.  Accomplished via Python's
 [fileinput](http://docs.python.org/3/library/fileinput.html) module.
 
 * **Output to stdout:**
