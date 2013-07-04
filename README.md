@@ -45,9 +45,9 @@ Assume `0.f13.gz`, `1.f13.gz` are gzipped UrQMD files containing one or more eve
 
     ebe-read 0.f13.gz 1.f13.gz
     zcat 0.f13.gz 1.f13.gz | ebe-read
-    gzip -d 0.f13.gz 1.f13.gz && ebe-read 0.f13.gz 1.f13.gz
+    gzip -d 0.f13.gz 1.f13.gz && ebe-read 0.f13 1.f13
 
-Shell globbing works normally.  For example, this reads all files in the current directory:
+Shell globbing works normally.  For example, this reads all gzipped UrQMD files in the current directory:
 
     ebe-read *.f13.gz
 
