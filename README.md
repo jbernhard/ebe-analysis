@@ -10,8 +10,7 @@ Tools for analyzing event-by-event heavy-ion collision simulation data.
 Each executable is a small Python script designed to gracefully accomplish a single task.
 
 * **Flexible input:**
-Executables read from stdin or files on disk.  Compressed files (gzip/bzip2) are handled transparently.  Accomplished via Python's
-[fileinput](http://docs.python.org/3/library/fileinput.html) module.
+Executables read from stdin or files on disk.  Compressed files (gzip/bzip2) are handled transparently.
 
 * **Output to stdout:**
 Results are printed to stdout as they are calculated.  This allows the user to choose file names, pass through gzip/bz2, etc.  Executables can
@@ -27,11 +26,6 @@ Most of the real work occurs in the classes located in `lib/`.  This makes it tr
 
 * **Standard particle information:**
 Each particle is represented by four quantities:  Monte Carlo ID, pT, phi, eta.  This allows roughly a 75% reduction in size compared to raw UrQMD files.
-
-* **Pythonic code:**
-The [Python style guide](http://www.python.org/dev/peps/pep-0008) is followed whenever possible.  All public functions and class methods have descriptive
-docstrings.  Private class attributes and methods are prefixed with an underscore [this makes no difference to Python, it's just a human-readable flag that the
-object is only meant to be used internally.]
 
 * **Minimal dependencies:**
 Python 3 and numpy.
@@ -103,3 +97,16 @@ pT spectra and particle multiplicity.
 
 * **Plotting:**
 Shortcuts for making common plots with matplotlib.
+
+
+
+## Coding style
+
+Every effort is made to keep code clean, consistent, and thoroughly commented.
+
+* The [Python style guide](http://www.python.org/dev/peps/pep-0008) is followed whenever possible.
+* All public functions and class methods have [docstrings](http://www.python.org/dev/peps/pep-0257).
+* Private class attributes and methods are prefixed with an underscore.  This makes no difference to Python, it's just a human-readable flag that the
+object is only meant to be used internally.
+*  Python's [fileinput](http://docs.python.org/3/library/fileinput.html) module is used for all data input.  It provides a standardized method to iterate over
+all input lines, from files or stdin, and handle compressed files transparently.
