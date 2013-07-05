@@ -61,10 +61,27 @@ class Event:
     -----
     >>> Event([particle1, particle2, ...])
 
+    Iterating over an Event is equivalent to iterating over its Particles, e.g.
+
+    >>> e = Event([p1,p2,p3])
+    >>> [p for p in e]
+    [p1,p2,p3]
+
+    The length of an Event is defined as its number of Particles:
+
+    >>> len(e)
+    3
+
     """
 
     def __init__(self,particles=[]):
         self._particles = particles
+
+    def __iter__(self):
+        return iter(self._particles)
+
+    def __len__(self):
+        return len(self._particles)
 
 
     def _phi(self):
