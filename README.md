@@ -79,6 +79,19 @@ Flows are output in the format
 
     vn_min_x vn_min_y ... vn_max_x vn_max_y
 
+### Calculating multiplicities
+
+`ebe-multiplicity` reads standard particle information and outputs the multiplicities of each event.  This is useful e.g. to calculate midrapidity yields:
+
+    ebe-read --charged --etamax 0.5 | ebe-multiplicity
+
+With the `--stats` option, the mean and standard deviation are also calculated.  They are printed to stderr [not stdout] on the final line.  This allows the EbE
+multiplicities to be separated from the stats, e.g.
+
+    ebe-multiplicity --stats > /dev/null
+
+will output _only_ the stats.
+
 
 
 ## Planned features
@@ -93,7 +106,7 @@ Flows are output in the format
 Data will be stored in a database via an [ORM](https://en.wikipedia.org/wiki/Object-relational_mapping), probably [Django](https://www.djangoproject.com).
 
 * **Other common calculations:**
-pT spectra and particle multiplicity.
+pT spectra.
 
 * **Plotting:**
 Shortcuts for making common plots with matplotlib.
