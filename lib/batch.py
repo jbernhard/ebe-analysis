@@ -6,6 +6,33 @@ A Batch is a collection of Events.
 import numpy as np
 
 
+class Stats:
+    """
+    Calculate and store descriptive statistics of a data set.
+
+    Usage
+    -----
+    >>> Stats(array-like)
+
+    The string representation of a Stats object is the mean and standard
+    deviation, e.g.
+
+    >>> s = Stats([1,2,3])
+    >>> print(s)
+    2.0 0.816496580927726
+
+    """
+
+    def __init__(self,data,asarray=np.asarray,mean=np.mean,std=np.std):
+        _data = asarray(data)
+
+        self.mean = mean(_data)
+        self.std = std(_data)
+
+    def __str__(self):
+        return '{} {}'.format(self.mean,self.std)
+
+
 class Batch:
     """
     Stores a list of Events.
