@@ -4,6 +4,7 @@ An Event is a collection of Particles.
 
 
 import numpy as np
+
 from .particle import Particle
 
 

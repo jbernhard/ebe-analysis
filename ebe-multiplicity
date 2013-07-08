@@ -1,8 +1,10 @@
 #!/usr/bin/env python3
 
+
 import argparse
 import fileinput
 import sys
+
 from lib import event
 from lib.batch import Stats
 
