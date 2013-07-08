@@ -29,6 +29,11 @@ class Particle:
 
     """
 
+    # explicitly define the allowed class attributes
+    # slight optmization
+    __slots__ = ['ID','pT','phi','eta']
+
+
     def __init__(self,ID=None,px=None,py=None,pz=None,pT=None,phi=None,eta=None):
         self.ID = ID
 
