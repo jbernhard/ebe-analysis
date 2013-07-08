@@ -46,7 +46,7 @@ class PDG:
 
     Then, call a public method, e.g. to retrieve the IDs of all charged
     particles
-    >>> pdg.chargedIDs()
+    >>> pdg.charged()
     [int, int, ...]
 
     """
