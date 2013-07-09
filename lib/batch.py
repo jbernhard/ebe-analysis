@@ -23,11 +23,11 @@ class Stats:
 
     """
 
-    def __init__(self,data,asarray=np.asarray,mean=np.mean,std=np.std):
-        _data = asarray(data)
+    def __init__(self,data):
+        data = np.asarray(data)
 
-        self.mean = mean(_data)
-        self.std = std(_data)
+        self.mean = data.mean()
+        self.std = data.std()
 
     def __str__(self):
         return '{} {}'.format(self.mean,self.std)
