@@ -9,11 +9,14 @@ from lib import event
 
 parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n
         from standard particle info.''',
-        epilog='Output format: vn_min_x vn_min_x ...  vn_max_x vn_max_y')
+        epilog='Default output format: v_min ... v_max')
 parser.add_argument('files', nargs='*',
         help="Files to read.  Omit or use '-' to read from stdin.")
 parser.add_argument('--vn', type=int, nargs=2, metavar=('min','max'), default=[2,6],
         help="Range of v_n to calculate [two arguments].  Default is 2 6.")
+parser.add_argument('--vectors', action='store_true',
+        help='Output flow vector components instead of magnitudes: v_min_x \
+        v_min_y ... v_max_x v_max_y')
 args = parser.parse_args()
 
 
@@ -23,7 +26,7 @@ vnmin,vnmax = args.vn
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
         for e in event.frominput(f):
-            print(*e.flows(vnmin,vnmax))
+            print(e.flows(vnmin,vnmax,printvectors=args.vectors))
 
 
 if __name__ == "__main__":

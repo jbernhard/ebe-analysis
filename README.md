@@ -77,7 +77,11 @@ The default range of v\_n is 2-6.  This may be customized via the `--vn` option,
 
 Flows are output in the format
 
-    vn_min_x vn_min_y ... vn_max_x vn_max_y
+    v_min ... v_max
+
+With the `--vectors` flag, flow vector components are output:
+
+    v_min_x v_min_y ... v_max_x v_max_y
 
 ### Calculating multiplicities
 
