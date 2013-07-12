@@ -1,0 +1,44 @@
+#!/usr/bin/env python3
+
+
+import argparse
+import fileinput
+import itertools
+
+import numpy as np
+
+from lib import plot
+
+
+_modes = {
+    'pT':    {'cols': [1],  'action': plot.pT},
+    'flows': {'cols': None, 'action': plot.flows},
+    'mult': {'cols': None, 'action': plot.mult},
+}
+
+
+parser = argparse.ArgumentParser(description='''Make plots.''')
+parser.add_argument('files', nargs='*',
+        help="Files to read.  Omit or use '-' to read from stdin.")
+parser.add_argument('--mode', choices=['auto'] + list(iter(_modes)),
+        default='auto', help="Plotting mode.  Default auto.")
+args = parser.parse_args()
+
+
+def main():
+    with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
+        #l = list(f)
+        #if args.mode == 'auto':
+        #    f0,f1 = itertools.tee(f)
+        #else:
+        #    mode = _modes[args.mode]
+        mode = _modes[args.mode]
+
+        data = np.loadtxt(f, usecols=mode['cols'])
+
+
+    mode['action'](data)
+
+
+if __name__ == "__main__":
+    main()
