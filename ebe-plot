@@ -3,41 +3,64 @@
 
 import argparse
 import fileinput
-import itertools
 
-import numpy as np
+#import numpy as np
 
 from lib import plot
 
 
-_modes = {
-    'pT':    {'cols': [1],  'action': plot.pT},
-    'flows': {'cols': None, 'action': plot.flows},
-    'mult': {'cols': None, 'action': plot.mult},
-}
+#_modes = {
+#    'pT':    {'cols': [1],  'action': plot.pT},
+#    'flows': {'cols': None, 'action': plot.flows},
+#    'mult': {'cols': None, 'action': plot.mult},
+#}
 
 
 parser = argparse.ArgumentParser(description='''Make plots.''')
 parser.add_argument('files', nargs='*',
         help="Files to read.  Omit or use '-' to read from stdin.")
-parser.add_argument('--mode', choices=['auto'] + list(iter(_modes)),
+#parser.add_argument('--mode', choices=['auto'] + list(iter(_modes)),
+#        default='auto', help="Plotting mode.  Default auto.")
+parser.add_argument('--mode', choices=['auto', 'pT', 'flows'],
         default='auto', help="Plotting mode.  Default auto.")
 args = parser.parse_args()
 
 
 def main():
+    #with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
+    #    l = list(f)
+    #    if args.mode == 'auto':
+    #        f0,f1 = itertools.tee(f)
+    #    else:
+    #        mode = _modes[args.mode]
+    #    mode = _modes[args.mode]
+
+    #    data = np.loadtxt(f, usecols=mode['cols'])
+
+    #mode['action'](data)
+
+
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        #l = list(f)
-        #if args.mode == 'auto':
-        #    f0,f1 = itertools.tee(f)
-        #else:
-        #    mode = _modes[args.mode]
-        mode = _modes[args.mode]
 
-        data = np.loadtxt(f, usecols=mode['cols'])
+        if args.mode == 'pT':
+
+            nev = 1
+            pT = []
+
+            for l in f:
+                if l.isspace():
+                    nev += 1
+                else:
+                    pT.append(float(l.split()[1]))
+
+            plot.pT(pT,nev=nev)
 
 
-    mode['action'](data)
+        elif args.mode == 'flows':
+
+            flows = [list(map(float, l.split())) for l in f]
+            plot.flows(flows)
+
 
 
 if __name__ == "__main__":
