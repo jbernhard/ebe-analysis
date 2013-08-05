@@ -3,6 +3,7 @@
 
 import argparse
 import fileinput
+import sys
 
 from lib import event
 
@@ -17,6 +18,8 @@ parser.add_argument('--vn', type=int, nargs=2, metavar=('min','max'), default=[2
 parser.add_argument('--vectors', action='store_true',
         help='Output flow vector components instead of magnitudes: v_min_x \
         v_min_y ... v_max_x v_max_y')
+parser.add_argument('--avg', action='store_true',
+        help='Also calculate average flows and print to _stderr_.')
 args = parser.parse_args()
 
 
@@ -25,8 +28,19 @@ vnmin,vnmax = args.vn
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
+        if args.avg:
+            _events = []
+
         for e in event.frominput(f):
             print(e.flows(vnmin,vnmax,printvectors=args.vectors))
+
+            if args.avg:
+                _events.append(e)
+
+    if args.avg:
+        print(event.combinedevent(*_events).flows(
+            vnmin,vnmax, printvectors=args.vectors), file=sys.stderr)
+
 
 
 if __name__ == "__main__":
