@@ -144,7 +144,7 @@ class Flows:
         """
 
         # pure python is faster than numpy for such a small array
-        return [sqrt(sum(j**2 for j in i)) for i in self.vectors()]
+        return [sqrt(v[0]*v[0] + v[1]*v[1]) for v in self.vectors()]
 
 
     def angles(self,atan2=math.atan2):
