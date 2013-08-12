@@ -139,23 +139,23 @@ class Flows:
         """
         Return a list of flow magnitudes:
 
-        [v_min, ..., v_max]
+        v_min, ..., v_max
 
         """
 
         # pure python is faster than numpy for such a small array
-        return [sqrt(v[0]*v[0] + v[1]*v[1]) for v in self.vectors()]
+        return (sqrt(v[0]*v[0] + v[1]*v[1]) for v in self.vectors())
 
 
     def angles(self,atan2=math.atan2):
         """
         Return a list of flow angles:
 
-        [Psi_min, ..., Psi_max]
+        Psi_min, ..., Psi_max
 
         """
 
-        return [atan2(y,x) for x,y in self.vectors()]
+        return (atan2(y,x) for x,y in self.vectors())
 
 
 class Event:
