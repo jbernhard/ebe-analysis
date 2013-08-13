@@ -17,8 +17,6 @@ parser.add_argument('--vn', type=int, nargs=2, metavar=('min','max'), default=[2
 parser.add_argument('--vectors', action='store_true',
         help='Output flow vector components instead of magnitudes: v_min_x \
         v_min_y ... v_max_x v_max_y')
-parser.add_argument('--avg', action='store_true',
-        help='Also calculate average flows and print to _stderr_.')
 parser.add_argument('--diff', nargs='?',
         metavar='width', type=float, const=0.1, default=0,
         help='''Calculate average differential flows instead of event-by-event
@@ -40,18 +38,8 @@ def main():
                 print(pT,len(e),e.flows(vnmin,vnmax,printvectors=args.vectors))
 
         else:
-            if args.avg:
-                _events = []
-
             for e in events:
                 print(e.flows(vnmin,vnmax,printvectors=args.vectors))
-
-                if args.avg:
-                    _events.append(e)
-
-            if args.avg:
-                print(event.combinedevent(_events).flows(
-                    vnmin,vnmax,printvectors=args.vectors), file=sys.stderr)
 
 
 
