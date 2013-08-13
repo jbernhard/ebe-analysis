@@ -57,27 +57,6 @@ def frominput(iterable):
         yield Event(particles)
 
 
-def combinedevent(events):
-    """
-    Concatenate a list of Events into a single Event.
-
-    e.g. if P1 and P2 are lists of particles, then
-    >>> Event(P1 + P2) == combinedevent(Event(P1),Event(P2))
-    True
-
-    Arguments
-    ---------
-    events -- list of Event objects
-
-    Returns
-    ------
-    combined Event()
-
-    """
-
-    return Event(itertools.chain.from_iterable(events))
-
-
 class Flows:
     """
     Calculate and store flow coefficients v_n.
