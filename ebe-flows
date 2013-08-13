@@ -9,8 +9,7 @@ from lib import event
 
 
 parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n
-        from standard particle info.''',
-        epilog='Default output format: v_min ... v_max')
+        from standard particle info.  Default output format: v_min ... v_max.''')
 parser.add_argument('files', nargs='*',
         help="Files to read.  Omit or use '-' to read from stdin.")
 parser.add_argument('--vn', type=int, nargs=2, metavar=('min','max'), default=[2,6],
