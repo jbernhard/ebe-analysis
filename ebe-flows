@@ -17,12 +17,12 @@ parser.add_argument('--vn', type=int, nargs=2, metavar=('min','max'), default=[2
 parser.add_argument('--vectors', action='store_true',
         help='Output flow vector components instead of magnitudes: v_min_x \
         v_min_y ... v_max_x v_max_y')
-parser.add_argument('--diff', nargs='?',
-        metavar='width', type=float, const=0.1, default=0,
-        help='''Calculate average differential flows instead of event-by-event
-        flows.  The optional argument `width' sets the pT bin width in GeV,
-        default 0.1.  Output format:  pT_mid N_particles v_min ... v_max, where
-        pT_mid is the middle pT value of the bin.''')
+#parser.add_argument('--diff', nargs='?',
+#        metavar='width', type=float, const=0.1, default=0,
+#        help='''Calculate average differential flows instead of event-by-event
+#        flows.  The optional argument `width' sets the pT bin width in GeV,
+#        default 0.1.  Output format:  pT_mid N_particles v_min ... v_max, where
+#        pT_mid is the middle pT value of the bin.''')
 args = parser.parse_args()
 
 
@@ -31,15 +31,8 @@ vnmin,vnmax = args.vn
 
 def main():
     with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        events = event.frominput(f)
-
-        if args.diff:
-            for pT,e in event.combinedevent(events).pTsubevents3(args.diff):
-                print(pT,len(e),e.flows(vnmin,vnmax,printvectors=args.vectors))
-
-        else:
-            for e in events:
-                print(e.flows(vnmin,vnmax,printvectors=args.vectors))
+        for e in event.frominput(f):
+            print(e.flows(vnmin,vnmax,printvectors=args.vectors))
 
 
 
