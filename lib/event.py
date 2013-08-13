@@ -57,7 +57,7 @@ def frominput(iterable):
         yield Event(particles)
 
 
-def combinedevent(*events):
+def combinedevent(events):
     """
     Concatenate a list of Events into a single Event.
 
