@@ -95,26 +95,35 @@ class Flows:
 
     """
 
-    def __init__(self,phi,vnmin,vnmax,printvectors=False,sin=np.sin,cos=np.cos):
+    def __init__(self,phi,vnmin,vnmax,printvectors=False,minparticles=10,
+            sin=np.sin,cos=np.cos):
         # store these as public class attributes
         self.vnmin = vnmin
         self.vnmax = vnmax
         self.printvectors = printvectors
+        self.minparticles = minparticles
 
-        # init. lists of flow compenents
-        self._vx = []
-        self._vy = []
+        if len(phi) < self.minparticles:
+            # flow doesn't make sense with too few particles
+            # in this case, set all flows to zero
+            self._vx = [0.0] * (self.vnmax - self.vnmin + 1)
+            self._vy = [0.0] * (self.vnmax - self.vnmin + 1)
 
-        ### use numpy to calculate flows
-        # much faster than pure python since phi will typically have size ~10^3
+        else:
+            # init. lists of flow compenents
+            self._vx = []
+            self._vy = []
 
-        phi = np.asarray(phi)
+            ### use numpy to calculate flows
+            # much faster than pure python since phi will typically have size ~10^3
 
-        for n in range(self.vnmin,self.vnmax+1):
-            nphi = n*phi
-            # event-plane method
-            self._vx.append( cos(nphi).mean() )
-            self._vy.append( sin(nphi).mean() )
+            phi = np.asarray(phi)
+
+            for n in range(self.vnmin,self.vnmax+1):
+                nphi = n*phi
+                # event-plane method
+                self._vx.append( cos(nphi).mean() )
+                self._vy.append( sin(nphi).mean() )
 
 
     def __str__(self):
