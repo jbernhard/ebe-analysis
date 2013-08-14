@@ -5,7 +5,6 @@ A Particle contains information about a physical particle.
 
 import collections
 import fileinput
-import math
 
 from .pdg import PDG
 
