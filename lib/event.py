@@ -76,12 +76,11 @@ class Flows:
 
     """
 
-    def __init__(self,event,vnmin,vnmax,printvectors=False,minparticles=10,
+    def __init__(self,event,vnmin,vnmax,minparticles=10,
             sin=np.sin,cos=np.cos):
         # store these as public class attributes
         self.vnmin = vnmin
         self.vnmax = vnmax
-        self.printvectors = printvectors
         self.minparticles = minparticles
 
         if len(event) < self.minparticles:
@@ -105,13 +104,6 @@ class Flows:
                 # event-plane method
                 self._vx.append( cos(nphi).mean() )
                 self._vy.append( sin(nphi).mean() )
-
-
-    def __str__(self):
-        if self.printvectors:
-            return ' '.join(map(str,itertools.chain.from_iterable(self.vectors())))
-        else:
-            return ' '.join(map(str,self.magnitudes()))
 
 
     def vectors(self):
