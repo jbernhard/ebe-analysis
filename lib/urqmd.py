@@ -2,11 +2,10 @@
 Read UrQMD output files.
 """
 
+import fileinput
 import math
 
 from .particle import Particle
-#from .event import Event
-#from .batch import Batch
 
 
 # urqmd particle lines are 435 chars long [including the two chars of '\n']
@@ -149,19 +148,19 @@ def _ffloat(x):
         return float(x.replace('D','E'))
 
 
-def particles(iterable,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
+def particles_from_files(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
     """
-    Converts UrQMD lines to Particle objects.
+    Generate Particle objects from UrQMD files.
 
     Arguments
     ---------
-    iterable -- must provide UrQMD particle lines as either bytes or strings
+    files -- list of filenames to read, passed directly to fileinput
 
     Yields
     ------
     Particle() or None
 
-    None serves as a separator between events.
+    Where None is a separator between events.
 
     """
 
@@ -170,59 +169,59 @@ def particles(iterable,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
     header = True
 
 
-    for line in iterable:
+    with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
+        for l in f:
+            # determine if this is a particle line via its length
 
-        # determine if this is a particle line via its length
+            if len(l) == PARTICLE_LINE_LENGTH:
+                # this is a particle line
 
-        if len(line) == PARTICLE_LINE_LENGTH:
-            # this is a particle line
-
-            if header:
-                # switch out of header mode
-                header = False
-
-
-            # extract necessary values
-
-            # loops are not efficient for only a few calls
-            # neither is map()
-            # faster to manually call the functions
-            # faster to extract values separately than e.g. line.split()
-
-            # momenta
-            px = _ffloat(line[121:144])
-            py = _ffloat(line[145:168])
-            pz = _ffloat(line[169:192])
-
-            # UrQMD ityp and 2*I3
-            ityp = int(line[218:221])
-            iso = int(line[222:224])
-
-            # determine Monte Carlo ID
-            # for antiparticles (ityp<0), negate 2*I3 and MCID
-            # checked for speed:  faster than using int(copysign(...))
-            sign = 1 if ityp > 0 else -1
-            ID = sign * PARTICLE_DICT[abs(ityp)][sign*iso]
-
-            # transverse momentum
-            pT = sqrt(px*px + py*py)
-
-            # azimuthal angle
-            phi = atan2(py,px)
-
-            # rapidity
-            pmag = sqrt(px*px + py*py + pz*pz)
-            eta = 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
+                if header:
+                    # switch out of header mode
+                    header = False
 
 
-            # yield the Particle
-            yield Particle(ID,pT,phi,eta)
+                # extract necessary values
 
-        else:
-            # this is a header line
+                # loops are not efficient for only a few calls
+                # neither is map()
+                # faster to manually call the functions
+                # faster to extract values separately than e.g. l.split()
 
-            if not header:
-                # switch to header mode
-                header = True
-                # yield None to separate events
-                yield
+                # momenta
+                px = _ffloat(l[121:144])
+                py = _ffloat(l[145:168])
+                pz = _ffloat(l[169:192])
+
+                # UrQMD ityp and 2*I3
+                ityp = int(l[218:221])
+                iso = int(l[222:224])
+
+                # determine Monte Carlo ID
+                # for antiparticles (ityp<0), negate 2*I3 and MCID
+                # checked for speed:  faster than using int(copysign(...))
+                sign = 1 if ityp > 0 else -1
+                ID = sign * PARTICLE_DICT[abs(ityp)][sign*iso]
+
+                # transverse momentum
+                pT = sqrt(px*px + py*py)
+
+                # azimuthal angle
+                phi = atan2(py,px)
+
+                # rapidity
+                pmag = sqrt(px*px + py*py + pz*pz)
+                eta = 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
+
+
+                # yield the Particle
+                yield Particle(ID,pT,phi,eta)
+
+            else:
+                # this is a header line
+
+                if not header:
+                    # switch to header mode
+                    header = True
+                    # yield None to separate events
+                    yield
