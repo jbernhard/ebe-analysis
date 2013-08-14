@@ -8,53 +8,55 @@ import math
 
 import numpy as np
 
-from .particle import Particle
+from . import particle
 
 
-def frominput(iterable):
+def from_files(files=None):
     """
-    Generate Events from standard particle info.
+    Convenience function to read events directly from files.  Identical to
+
+    >>> from_particles(particle.from_files(files))
+
+    """
+
+    return from_particles(particle.from_files(files))
+
+
+def from_particles(particles):
+    """
+    Generate events (lists of particles) by splitting an iterable of particles
+    into sublists.
 
     Arguments
     ---------
-    iterable -- containing standard particle lines [bytes or strings]
+    particles -- iterable containing Particle objects
 
     Yields
     ------
-    Event()
+    sublists of Particles
 
     """
 
-    # init. empty list of particles
-    particles = []
+    # init. empty event
+    event = []
 
-    # scan through lines
-    for l in iterable:
-        # if l is a blank line, then l.strip() will be an empty string
+    for p in particles:
 
-        if l.isspace():
-            # this is a blank line => have reached the end of this event
-            if particles:
-                yield Event(particles)
-                particles = []
+        if p:
+            # append valid particles to the current event
+            event.append(p)
 
         else:
-            # this is a particle line
-            ID,pT,phi,eta = l.split()
+            # have reached the end of the this event
+            # yield current event and init. a new one
+            if event:
+                yield event
+                event = []
 
-            # create a new Particle and add it to the list
-            particles.append(Particle(
-                    ID=int(ID),
-                    pT=float(pT),
-                    phi=float(phi),
-                    eta=float(eta)
-                )
-            )
-
-    # lines have been exhausted
+    # particles have been exhausted
     # typically there will be one last event to yield
-    if particles:
-        yield Event(particles)
+    if event:
+        yield event
 
 
 class Flows:
