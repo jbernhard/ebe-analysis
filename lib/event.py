@@ -61,18 +61,14 @@ def from_particles(particles):
 
 class Flows:
     """
-    Calculate and store flow coefficients v_n.
+    Calculate and store flow coefficients v_n for an event.
 
     Usage
     -----
-    >>> Flows(phi,vnmin,vnmax,printvectors=False)
+    >>> Flows(event,vnmin,vnmax)
 
-    phi -- array-like object containing the list of phi angles
+    event -- list of Particle objects
     vnmin,vnmax -- range of v_n
-
-    optional:
-    printvectors -- boolean, whether the string representation is flow vector
-        components or flow magnitudes
 
     """
 
