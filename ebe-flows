@@ -30,10 +30,12 @@ vnmin,vnmax = args.vn
 
 
 def main():
-    with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        for e in event.frominput(f):
-            print(e.flows(vnmin,vnmax,printvectors=args.vectors))
-
+    for e in event.from_files(args.files):
+        fl = event.Flows(e,vnmin,vnmax)
+        if args.vectors:
+            print(*fl.vectorchain())
+        else:
+            print(*fl.magnitudes())
 
 
 if __name__ == "__main__":
