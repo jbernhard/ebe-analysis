@@ -2,6 +2,8 @@
 Read UrQMD output files.
 """
 
+import math
+
 from .particle import Particle
 #from .event import Event
 #from .batch import Batch
@@ -147,7 +149,7 @@ def _ffloat(x):
         return float(x.replace('D','E'))
 
 
-def particles(iterable):
+def particles(iterable,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
     """
     Converts UrQMD lines to Particle objects.
 
@@ -202,9 +204,19 @@ def particles(iterable):
             sign = 1 if ityp > 0 else -1
             ID = sign * PARTICLE_DICT[abs(ityp)][sign*iso]
 
+            # transverse momentum
+            pT = sqrt(px*px + py*py)
+
+            # azimuthal angle
+            phi = atan2(py,px)
+
+            # rapidity
+            pmag = sqrt(px*px + py*py + pz*pz)
+            eta = 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
+
 
             # yield the Particle
-            yield Particle(ID=ID,px=px,py=py,pz=pz)
+            yield Particle(ID,pT,phi,eta)
 
         else:
             # this is a header line
