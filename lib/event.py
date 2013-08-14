@@ -76,7 +76,7 @@ class Flows:
 
     """
 
-    def __init__(self,phi,vnmin,vnmax,printvectors=False,minparticles=10,
+    def __init__(self,event,vnmin,vnmax,printvectors=False,minparticles=10,
             sin=np.sin,cos=np.cos):
         # store these as public class attributes
         self.vnmin = vnmin
@@ -84,7 +84,7 @@ class Flows:
         self.printvectors = printvectors
         self.minparticles = minparticles
 
-        if len(phi) < self.minparticles:
+        if len(event) < self.minparticles:
             # flow doesn't make sense with too few particles
             # in this case, set all flows to zero
             self._vx = [0.0] * (self.vnmax - self.vnmin + 1)
@@ -98,7 +98,7 @@ class Flows:
             ### use numpy to calculate flows
             # much faster than pure python since phi will typically have size ~10^3
 
-            phi = np.asarray(phi)
+            phi = np.fromiter((p.phi for p in event), np.float, count=len(event))
 
             for n in range(self.vnmin,self.vnmax+1):
                 nphi = n*phi
