@@ -117,6 +117,16 @@ class Flows:
         return zip(self._vx,self._vy)
 
 
+    def vectorchain(self):
+        """
+        Return an iterable of flattened flow vectors:
+
+        v_min_x, v_min_y, ..., v_max_x, v_may_y
+
+        """
+        return itertools.chain.from_iterable(self.vectors())
+
+
     def magnitudes(self,sqrt=math.sqrt):
         """
         Return an iterable of flow magnitudes:
