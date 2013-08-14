@@ -3,60 +3,59 @@ A Particle contains information about a physical particle.
 """
 
 
+import collections
 import math
 
 from .pdg import PDG
 
 
-class Particle:
-    """
-    Stores standard particle information.
 
-    Usage
-    -----
-    >>> Particle(ID=ID,px=px,py=py,pz=pz)
-    >>> Particle(ID=ID,pT=pT,phi=phi,eta=eta)
+"""
+The Particle class.
 
-    In the former case, pT,phi,eta are calculated from px,py,pz via the methods
-    _calc_<var>.  In both cases, pT,phi,eta become attributes of the instance.
+Stores standard particle information (ID,pT,phi,eta) using the
+collections.namedtuple container.
 
-    The __str__ method has been manually defined to return standard particle
-    information.  This is very convenient for printing to stdout, e.g.
+Usage
+-----
+A Particle is typically created with positional arguments
 
-    >>> p = Particle(ID=211,pT=0.5,phi=1.0,eta=2.0)
-    >>> print(p)
-    211 0.5 1.0 2.0
+>>> Particle(ID,pT,phi,eta)
 
-    """
+Keyword arguments also work
 
-    # explicitly define the allowed class attributes
-    # slight optmization
-    __slots__ = ['ID','pT','phi','eta']
+>>> Particle(211,1.0,2.0,3.0) == Particle(pT=1.0,phi=2.0,eta=3.0,ID=211)
+True
 
+Fields are addressed directly by name
 
-    def __init__(self,ID=None,px=None,py=None,pz=None,pT=None,phi=None,eta=None):
-        self.ID = ID
+>>> p = Particle(211,1.0,2.0,3.0)
+>>> p.pT
+1.0
 
-        self.pT = pT or self._calc_pT(px,py)
-        self.phi = phi or self._calc_phi(px,py)
-        self.eta = eta or self._calc_eta(px,py,pz)
+This is superior to a regular tuple, where fields must be addressed by index
 
-    def __str__(self):
-        # fastest way I have found to create the string
-        # _much_ faster than ' '.join(str(i) for i in (...))
-        # also faster than returning a tuple and print(*tuple)
-        return '{} {} {} {}'.format(self.ID, self.pT, self.phi, self.eta)
+>>> p[1]
 
+or dictionaries, where fields are addressed by name but in a comparitively less
+readable manner
 
-    def _calc_pT(self,px,py,sqrt=math.sqrt):
-        return sqrt(px*px + py*py)
+>>> p['pT']
 
-    def _calc_phi(self,px,py,atan2=math.atan2):
-        return atan2(py,px)
+The namedtuple retains order, unlike a dictionary
 
-    def _calc_eta(self,px,py,pz,sqrt=math.sqrt,log=math.log):
-        pmag = sqrt(px*px + py*py + pz*pz)
-        return 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
+>>> list(p)
+[211, 1.0, 2.0, 3.0]
+>>> print(*p)
+211 1.0 2.0 3.0
+
+Standard order (ID,pT,phi,eta) is retained even if the Particle is created with
+out-of-order keyword arguments.
+
+"""
+
+Particle = collections.namedtuple('Particle', 'ID pT phi eta')
+
 
 
 class ParticleFilter:
