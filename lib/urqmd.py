@@ -150,7 +150,7 @@ def _ffloat(x):
 
 def particles_from_files(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
     """
-    Generate Particle objects from UrQMD files.
+    Generate Particle objects from UrQMD files.  Yield None to separate events.
 
     Arguments
     ---------
@@ -159,8 +159,6 @@ def particles_from_files(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log
     Yields
     ------
     Particle() or None
-
-    Where None is a separator between events.
 
     """
 
