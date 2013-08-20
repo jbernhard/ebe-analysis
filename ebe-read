@@ -2,7 +2,6 @@
 
 
 import argparse
-import fileinput
 
 from lib import urqmd
 from lib.particle import ParticleFilter
@@ -34,31 +33,25 @@ files = argdict.pop('files')
 
 
 def main():
-    with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
 
-        # init. the urqmd particle generator
-        particles = urqmd.particles(f)
+    # init. the urqmd particle generator
+    particles = urqmd.particles_from_files(files)
 
-        # handle particles differently with filtering
-        if any(argdict.values()):
-            # there is at least one of the filtering option
-            # define a filter function
-            pf = ParticleFilter(**argdict)
+    # handle particles differently with filtering
+    if any(argdict.values()):
+        # there is at least one of the filtering option
+        # define a filter function
+        pf = ParticleFilter(**argdict)
 
-            for p in particles:
-                # output this particle if it passes the filter
-                if p:
-                    if pf(p):
-                        print(p)
-                else:
-                    # blank line to separate events
-                    print()
+        for p in filter(pf,particles):
+            # output this particle if it passes the filter
+            print(*p or '')
 
-        else:
-            # no filtering options
-            # output all particles with blank lines to separate events
-            for p in particles:
-                print(p or '')
+    else:
+        # no filtering options
+        # output all particles with blank lines to separate events
+        for p in particles:
+            print(*p or '')
 
 
 if __name__ == "__main__":
