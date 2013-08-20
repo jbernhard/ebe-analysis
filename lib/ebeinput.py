@@ -67,11 +67,10 @@ def events_from_files(files=None,inputformat='auto',**filterargs):
     # autodetect input format
     # very simple:  if '.f13' is in the first filename, set format to urqmd
     # else set to std
-    if inputformat == 'auto' and files:
-        if '.f13' in files or '.f13' in files[0]:
-            inputformat = 'urqmd'
-        else:
-            inputformat = 'std'
+    if inputformat == 'auto' and files and ('.f13' in files or '.f13' in files[0]):
+        inputformat = 'urqmd'
+    else:
+        inputformat = 'std'
 
     # set the particle generator based on the input format
     particles = _formatdict[inputformat](files)
