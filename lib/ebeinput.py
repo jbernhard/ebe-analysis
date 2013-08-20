@@ -5,7 +5,8 @@ Functions for reading event-by-event data.
 
 import fileinput
 
-from .particle import Particle
+from .particle import Particle, particlefilter
+from . import urqmd
 
 
 def particles_from_files(files=None):
@@ -26,7 +27,6 @@ def particles_from_files(files=None):
     with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
 
         for l in f:
-
             # try to unpack the line into standard particle info
             try:
                 ID,pT,phi,eta = l.split()
@@ -40,24 +40,41 @@ def particles_from_files(files=None):
                 yield Particle( int(ID), float(pT), float(phi), float(eta) )
 
 
-def events_from_particles(particles):
+# map input format strings to particle generators
+_formatdict = {
+    'std'   : particles_from_files,
+    'urqmd' : urqmd.particles_from_files
+}
+
+
+def events_from_files(files=None,inputformat='std',**filterargs):
     """
     Generate events (lists of particles) by splitting an iterable of particles
     into sublists.
 
     Arguments
     ---------
-    particles -- iterable containing Particle objects
+    files -- list of filenames to read
+    inputformat -- 'std' or 'urqmd'
+    filterargs -- key-value pairs for a particlefilter
 
     Yields
     ------
-    sublists of Particles
+    events [i.e. sublists of Particles]
 
     """
+
+    # set the particle generator based on the input format
+    particles = _formatdict[inputformat](files)
+
+    # filter particles if necessary
+    if any(filterargs.values()):
+        particles = filter(particlefilter(**filterargs), particles)
 
     # init. empty event
     event = []
 
+    # process each particle
     for p in particles:
 
         if p:
@@ -75,14 +92,3 @@ def events_from_particles(particles):
     # typically there will be one last event to yield
     if event:
         yield event
-
-
-def events_from_files(files=None):
-    """
-    Convenience function to read events directly from files.  Identical to
-
-    >>> events_from_particles(particles_from_files(files))
-
-    """
-
-    return events_from_particles(particles_from_files(files))
