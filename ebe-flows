@@ -5,7 +5,8 @@ import argparse
 import fileinput
 import sys
 
-from lib import event
+from lib.ebeinput import events_from_files
+from lib.flows import Flows
 
 
 parser = argparse.ArgumentParser(description='''Calculate flow coefficients v_n
@@ -30,8 +31,8 @@ vnmin,vnmax = args.vn
 
 
 def main():
-    for e in event.from_files(args.files):
-        fl = event.Flows(e,vnmin,vnmax)
+    for e in events_from_files(args.files):
+        fl = Flows(e,vnmin,vnmax)
         if args.vectors:
             print(*fl.vectorchain())
         else:

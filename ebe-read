@@ -3,8 +3,8 @@
 
 import argparse
 
-from lib import urqmd
-from lib.particle import ParticleFilter
+from lib.particle import particlefilter
+from lib.urqmd import particles_from_files
 
 
 parser = argparse.ArgumentParser(description='''Read UrQMD files and output standard
@@ -35,13 +35,13 @@ files = argdict.pop('files')
 def main():
 
     # init. the urqmd particle generator
-    particles = urqmd.particles_from_files(files)
+    particles = particles_from_files(files)
 
     # handle particles differently with filtering
     if any(argdict.values()):
         # there is at least one of the filtering option
         # define a filter function
-        pf = ParticleFilter(**argdict)
+        pf = particlefilter(**argdict)
 
         for p in filter(pf,particles):
             # output this particle if it passes the filter
