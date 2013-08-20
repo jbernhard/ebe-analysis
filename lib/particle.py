@@ -4,42 +4,8 @@ A Particle contains information about a physical particle.
 
 
 import collections
-import fileinput
 
 from .pdg import PDG
-
-
-def from_files(files=None):
-    """
-    Generate Particle objects from files containing standard particle info.
-    Yield None on blank lines.
-
-    Arguments
-    ---------
-    files -- list of filenames to read, passed directly to fileinput
-
-    Yields
-    ------
-    Particle() or None
-
-    """
-
-    with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
-
-        for l in f:
-
-            # try to unpack the line into standard particle info
-            try:
-                ID,pT,phi,eta = l.split()
-
-            # exception => this is a blank line
-            except ValueError:
-                yield
-
-            # line was successfully unpacked => create a Particle
-            else:
-                yield Particle( int(ID), float(pT), float(phi), float(eta) )
-
 
 
 """
