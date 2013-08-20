@@ -10,8 +10,8 @@ parser = argparse.ArgumentParser(description='''Read UrQMD files and output stan
         particle info.  Optionally filter particles with the following arguments.''')
 parser.add_argument('files', nargs='*', help='''Files to read.  Omit or use '-'
         to read from stdin.''')
-parser.add_argument('-i', '--input', metavar='std|urqmd', choices=['std','urqmd'],
-        default='urqmd', help='Input format.')
+parser.add_argument('-i', '--input', metavar='auto|std|urqmd', choices=['auto','std','urqmd'],
+        default='auto', help='Input format, default:  auto.')
 parser.add_argument('--ID', type=int, nargs='+',
         help='Particle IDs, space separated.')
 parser.add_argument('--charged', action='store_true',

@@ -47,7 +47,7 @@ _formatdict = {
 }
 
 
-def events_from_files(files=None,inputformat='std',**filterargs):
+def events_from_files(files=None,inputformat='auto',**filterargs):
     """
     Generate events (lists of particles) by splitting an iterable of particles
     into sublists.
@@ -63,6 +63,15 @@ def events_from_files(files=None,inputformat='std',**filterargs):
     events [i.e. sublists of Particles]
 
     """
+
+    # autodetect input format
+    # very simple:  if '.f13' is in the first filename, set format to urqmd
+    # else set to std
+    if inputformat == 'auto' and files:
+        if '.f13' in files or '.f13' in files[0]:
+            inputformat = 'urqmd'
+        else:
+            inputformat = 'std'
 
     # set the particle generator based on the input format
     particles = _formatdict[inputformat](files)
