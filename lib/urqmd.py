@@ -148,7 +148,7 @@ def _ffloat(x):
         return float(x.replace('D','E'))
 
 
-def particles_from_files(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
+def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
     """
     Generate Particle objects from UrQMD files.  Yield None to separate events.
 

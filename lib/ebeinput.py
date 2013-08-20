@@ -6,10 +6,10 @@ Functions for reading event-by-event data.
 import fileinput
 
 from .particle import Particle, particlefilter
-from . import urqmd
+from .urqmd import particles_from_urqmd
 
 
-def particles_from_files(files=None):
+def particles_from_std(files=None):
     """
     Generate Particle objects from files containing standard particle info.
     Yield None on blank lines.
@@ -42,8 +42,8 @@ def particles_from_files(files=None):
 
 # map input format strings to particle generators
 _formatdict = {
-    'std'   : particles_from_files,
-    'urqmd' : urqmd.particles_from_files
+    'std'   : particles_from_std,
+    'urqmd' : particles_from_urqmd
 }
 
 
