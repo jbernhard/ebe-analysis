@@ -5,7 +5,6 @@ Provides an interface to PDG particle information.
 
 import os.path
 import sqlite3
-import urllib.request
 
 
 # database where PDG data will be stored, relative to this file's location
@@ -90,7 +89,8 @@ class PDG:
     def _getparticles(self):
         # download the PDG particle table and generate tuples
         # (ID,mass,name,charge) for each particle
-        with urllib.request.urlopen(pdgurl) as f:
+        from urllib.request import urlopen
+        with urlopen(pdgurl) as f:
             for l in f:
                 # mass lines only
                 if l[0:1] == b'M':

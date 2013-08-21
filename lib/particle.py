@@ -5,8 +5,6 @@ A Particle contains information about a physical particle.
 
 from collections import namedtuple
 
-from .pdg import PDG
-
 
 __all__ = ['Particle', 'particle_filter']
 
@@ -113,6 +111,7 @@ def particle_filter(ID=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax
     # match charged particles
     if charged:
         # retrieve ID list from PDG class
+        from .pdg import PDG
         pdg = PDG()
         _charged = pdg.charged()
         del pdg

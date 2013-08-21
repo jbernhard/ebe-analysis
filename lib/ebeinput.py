@@ -16,8 +16,6 @@ All generators take filenames as their primary arguments.
 """
 
 
-import math
-
 from .particle import *
 
 
@@ -223,7 +221,7 @@ def _ffloat(x):
     return float(x.replace(b'D',b'E'))
 
 
-def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
+def particles_from_urqmd(files=None):
     """
     Generate Particle objects from UrQMD files.  Yield None to separate events.
 
@@ -236,6 +234,8 @@ def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log
     Particle() or None
 
     """
+
+    from math import sqrt, atan2, log
 
     # use this boolean to keep track of event headers
     # files should begin with a header
