@@ -5,7 +5,7 @@ Functions for reading event-by-event data.
 
 import math
 
-from .particle import Particle, particlefilter
+from .particle import *
 
 
 def open_compressed(filename,mode='rb'):
@@ -28,7 +28,7 @@ def open_compressed(filename,mode='rb'):
         return open(filename,mode)
 
 
-def read_files(files=None):
+def lines(files=None):
     """
 
     """
@@ -200,7 +200,7 @@ def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log
     header = True
 
 
-    for l in read_files(files):
+    for l in lines(files):
         # determine if this is a particle line via its length
 
         if len(l) == _urqmd_particle_line_length:
@@ -272,7 +272,7 @@ def particles_from_std(files=None):
 
     """
 
-    for l in read_files(files):
+    for l in lines(files):
         # try to unpack the line into standard particle info
         try:
             ID,pT,phi,eta = l.split()
@@ -287,7 +287,7 @@ def particles_from_std(files=None):
 
 
 # map input format strings to particle generators
-_formatdict = {
+_format_dict = {
     'std'   : particles_from_std,
     'urqmd' : particles_from_urqmd
 }
@@ -302,7 +302,7 @@ def events_from_files(files=None,inputformat='auto',**filterargs):
     ---------
     files -- list of filenames to read
     inputformat -- 'std' or 'urqmd'
-    filterargs -- key-value pairs for a particlefilter
+    filterargs -- key-value pairs for a particle_filter
 
     Yields
     ------
@@ -319,11 +319,11 @@ def events_from_files(files=None,inputformat='auto',**filterargs):
         inputformat = 'std'
 
     # set the particle generator based on the input format
-    particles = _formatdict[inputformat](files)
+    particles = _format_dict[inputformat](files)
 
     # filter particles if necessary
     if any(filterargs.values()):
-        particles = filter(particlefilter(**filterargs), particles)
+        particles = filter(particle_filter(**filterargs), particles)
 
     # init. empty event
     event = []
