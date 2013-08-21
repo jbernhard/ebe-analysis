@@ -3,10 +3,46 @@ Functions for reading event-by-event data.
 """
 
 
-import fileinput
 import math
 
 from .particle import Particle, particlefilter
+
+
+def open_compressed(filename,mode='rb'):
+    """
+
+    """
+
+    ext = filename.split('.')[-1]
+
+    if ext == 'gz':
+        import gzip
+        return gzip.open(filename,mode)
+    elif ext == 'xz':
+        import lzma
+        return lzma.open(filename,mode)
+    elif ext == 'bz2':
+        import bz2
+        return bz2.open(filename,mode)
+    else:
+        return open(filename,mode)
+
+
+def read_files(files=None):
+    """
+
+    """
+
+    if not files or files == '-':
+        import sys
+        yield from sys.stdin.detach()
+    elif isinstance(files,str):
+        with open_compressed(files) as f:
+            yield from f
+    else:
+        for fn in files:
+            with open_compressed(fn) as f:
+                yield from f
 
 
 # urqmd particle lines are 435 chars long [including the two chars of '\n']
@@ -142,10 +178,7 @@ def _ffloat(x):
     # python does not understand 'D' in fortran doubles so replace it with 'E'
 
     # must handle bytes / string cases separately
-    if isinstance(x,bytes):
-        return float(x.replace(b'D',b'E'))
-    else:
-        return float(x.replace('D','E'))
+    return float(x.replace(b'D',b'E'))
 
 
 def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log):
@@ -154,7 +187,7 @@ def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log
 
     Arguments
     ---------
-    files -- list of filenames to read, passed directly to fileinput
+    files -- list of filenames to read
 
     Yields
     ------
@@ -167,62 +200,61 @@ def particles_from_urqmd(files=None,sqrt=math.sqrt,atan2=math.atan2,log=math.log
     header = True
 
 
-    with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
-        for l in f:
-            # determine if this is a particle line via its length
+    for l in read_files(files):
+        # determine if this is a particle line via its length
 
-            if len(l) == _urqmd_particle_line_length:
-                # this is a particle line
+        if len(l) == _urqmd_particle_line_length:
+            # this is a particle line
 
-                if header:
-                    # switch out of header mode
-                    header = False
-
-
-                # extract necessary values
-
-                # loops are not efficient for only a few calls
-                # neither is map()
-                # faster to manually call the functions
-                # faster to extract values separately than e.g. l.split()
-
-                # momenta
-                px = _ffloat(l[121:144])
-                py = _ffloat(l[145:168])
-                pz = _ffloat(l[169:192])
-
-                # UrQMD ityp and 2*I3
-                ityp = int(l[218:221])
-                iso = int(l[222:224])
-
-                # determine Monte Carlo ID
-                # for antiparticles (ityp<0), negate 2*I3 and MCID
-                # checked for speed:  faster than using int(copysign(...))
-                sign = 1 if ityp > 0 else -1
-                ID = sign * _urqmd_particle_dict[abs(ityp)][sign*iso]
-
-                # transverse momentum
-                pT = sqrt(px*px + py*py)
-
-                # azimuthal angle
-                phi = atan2(py,px)
-
-                # rapidity
-                pmag = sqrt(px*px + py*py + pz*pz)
-                eta = 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
+            if header:
+                # switch out of header mode
+                header = False
 
 
-                # yield the Particle
-                yield Particle(ID,pT,phi,eta)
+            # extract necessary values
 
-            else:
-                # this is a header line
+            # loops are not efficient for only a few calls
+            # neither is map()
+            # faster to manually call the functions
+            # faster to extract values separately than e.g. l.split()
 
-                if not header:
-                    # switch to header mode
-                    header = True
-                    # yield None to separate events
-                    yield
+            # momenta
+            px = _ffloat(l[121:144])
+            py = _ffloat(l[145:168])
+            pz = _ffloat(l[169:192])
+
+            # UrQMD ityp and 2*I3
+            ityp = int(l[218:221])
+            iso = int(l[222:224])
+
+            # determine Monte Carlo ID
+            # for antiparticles (ityp<0), negate 2*I3 and MCID
+            # checked for speed:  faster than using int(copysign(...))
+            sign = 1 if ityp > 0 else -1
+            ID = sign * _urqmd_particle_dict[abs(ityp)][sign*iso]
+
+            # transverse momentum
+            pT = sqrt(px*px + py*py)
+
+            # azimuthal angle
+            phi = atan2(py,px)
+
+            # rapidity
+            pmag = sqrt(px*px + py*py + pz*pz)
+            eta = 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
+
+
+            # yield the Particle
+            yield Particle(ID,pT,phi,eta)
+
+        else:
+            # this is a header line
+
+            if not header:
+                # switch to header mode
+                header = True
+                # yield None to separate events
+                yield
 
 
 def particles_from_std(files=None):
@@ -232,7 +264,7 @@ def particles_from_std(files=None):
 
     Arguments
     ---------
-    files -- list of filenames to read, passed directly to fileinput
+    files -- list of filenames to read
 
     Yields
     ------
@@ -240,20 +272,18 @@ def particles_from_std(files=None):
 
     """
 
-    with fileinput.input(files=files,openhook=fileinput.hook_compressed) as f:
+    for l in read_files(files):
+        # try to unpack the line into standard particle info
+        try:
+            ID,pT,phi,eta = l.split()
 
-        for l in f:
-            # try to unpack the line into standard particle info
-            try:
-                ID,pT,phi,eta = l.split()
+        # exception => this is a blank line
+        except ValueError:
+            yield
 
-            # exception => this is a blank line
-            except ValueError:
-                yield
-
-            # line was successfully unpacked => create a Particle
-            else:
-                yield Particle( int(ID), float(pT), float(phi), float(eta) )
+        # line was successfully unpacked => create a Particle
+        else:
+            yield Particle( int(ID), float(pT), float(phi), float(eta) )
 
 
 # map input format strings to particle generators
