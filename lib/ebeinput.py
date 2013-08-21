@@ -366,7 +366,7 @@ def events_from_files(files=None,inputformat='auto',**filterargs):
 
     # filter particles if necessary
     if any(filterargs.values()):
-        particles = filter(particle_filter(**filterargs), particles)
+        particles = particle_filter(particles,**filterargs)
 
     # init. empty event
     event = []

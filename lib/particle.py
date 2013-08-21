@@ -57,7 +57,7 @@ Particle = namedtuple('Particle', 'ID pT phi eta')
 
 
 
-def particle_filter(ID=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax=None):
+def particle_filter(particles,ID=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax=None):
     """
     Factory function:  creates a function to filter Particles with specified
     criteria.
@@ -141,9 +141,10 @@ def particle_filter(ID=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax
 
 
     if _filters:
+        # match all specified filters
         def func(Particle):
-            # match all filter functions
             return all(f(Particle) for f in _filters) if Particle else True
-        return func
+        return filter(func, particles)
     else:
-        return
+        # if no filters, just return the iterable as is
+        return particles
