@@ -1,5 +1,18 @@
 """
-Functions for reading event-by-event data.
+Read event-by-event data via generators.
+
+The lowest-level generator is lines(), which yields lines from stdin, a single
+file, or multiple files in sequence.
+
+In the middle are the particle generators particles_from_<format>(), which read
+lines and yield Particle objects.  They also yield None to separate events.
+
+The highest-level generator is events_from_files(), which reads from the
+particle generators and yields lists of Particle objects, i.e. "events".  It
+depends on the particle generators yielding None to know when to separate
+events.
+
+All generators take filenames as their primary arguments.
 """
 
 
@@ -10,6 +23,16 @@ from .particle import *
 
 def open_compressed(filename,mode='rb'):
     """
+    Open a file for reading with automatic decompression.  Detects gzip, xz, and
+    bz2 files via the file extension.
+
+    Arguments
+    ---------
+    filename to open
+
+    Returns
+    -------
+    open file object
 
     """
 
@@ -30,16 +53,37 @@ def open_compressed(filename,mode='rb'):
 
 def lines(files=None):
     """
+    Read all lines from files or stdin.  A simpler, faster version of
+    fileinput.input().
+
+    Everything is read in binary mode, i.e. lines are yielded as bytes objects.
+    This is marginally faster than text mode since it avoids an unecessary text
+    wrapper.
+
+    Arguments
+    ---------
+    files -- Filenames to read.  May be an iterable, a single string, or empty.
+             If empty or '-', read from stdin.
+
+    Yields
+    ------
+    lines -- as bytes objects
 
     """
 
     if not files or files == '-':
+        # read from stdin
+        # detach to read in binary mode
         import sys
         yield from sys.stdin.detach()
+
     elif isinstance(files,str):
+        # just one file
         with open_compressed(files) as f:
             yield from f
+
     else:
+        # several files
         for fn in files:
             with open_compressed(fn) as f:
                 yield from f
@@ -176,8 +220,6 @@ _urqmd_particle_dict = {
 def _ffloat(x):
     # convert a fortran double to a python float
     # python does not understand 'D' in fortran doubles so replace it with 'E'
-
-    # must handle bytes / string cases separately
     return float(x.replace(b'D',b'E'))
 
 

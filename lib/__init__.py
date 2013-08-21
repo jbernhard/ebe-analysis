@@ -1,3 +1,3 @@
 """
-Classes for EbE analysis.
+Modules for EbE analysis.
 """
