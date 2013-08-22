@@ -111,10 +111,8 @@ def particle_filter(particles,ID=[],charged=False,pTmin=None,pTmax=None,etamin=N
     # match charged particles
     if charged:
         # retrieve ID list from PDG class
-        from .pdg import PDG
-        pdg = PDG()
-        _charged = pdg.charged()
-        del pdg
+        import pdg
+        _charged = pdg.chargedIDs()
         _filters.append(lambda Particle: abs(Particle.ID) in _charged)
 
 

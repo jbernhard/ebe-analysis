@@ -32,6 +32,21 @@ pdgurl = 'http://pdg.lbl.gov/2012/mcdata/mass_width_2012.mcd'
 #           particle names.
 
 
+_pdg = None
+
+
+### shortcut functions to class methods
+
+def chargedIDs():
+    """ shortcut to PDG.chargedIDs() """
+
+    global _pdg
+    if not _pdg:
+        _pdg = PDG()
+
+    return _pdg.chargedIDs()
+
+
 class PDG:
     """
     Creates and reads a sqlite DB of the PDG particle table.
@@ -123,7 +138,7 @@ class PDG:
                         yield ID[k],mass,name,charge[k]
 
 
-    def charged(self):
+    def chargedIDs(self):
         """
         Retrieve the IDs of all charged particles.
 
