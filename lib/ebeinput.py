@@ -87,9 +87,6 @@ def lines(files=None):
                 yield from f
 
 
-# urqmd particle lines are 435 chars long [including the two chars of '\n']
-_urqmd_particle_line_length = 435
-
 # dictionary to convert from urqmd ityp and 2*I3 to monte carlo ID
 # adapted from ityp2pdg.f in the urqmd source
 # structure is ityp:{2i3:mcid}
@@ -215,12 +212,6 @@ _urqmd_particle_dict = {
 }
 
 
-def _ffloat(x):
-    # convert a fortran double to a python float
-    # python does not understand 'D' in fortran doubles so replace it with 'E'
-    return float(x.replace(b'D',b'E'))
-
-
 def particles_from_urqmd(files=None):
     """
     Generate Particle objects from UrQMD files.  Yield None to separate events.
@@ -243,60 +234,53 @@ def particles_from_urqmd(files=None):
 
 
     for l in lines(files):
-        # determine if this is a particle line via its length
-
-        if len(l) == _urqmd_particle_line_length:
-            # this is a particle line
-
-            if header:
-                # switch out of header mode
-                header = False
-
-
-            # extract necessary values
-
-            # loops are not efficient for only a few calls
-            # neither is map()
+        # try to extract necessary values
+        try:
+            # this code might seem odd but it is python-optimized
+            # loops are slow, so is map()
             # faster to manually call the functions
-            # faster to extract values separately than e.g. l.split()
+            # faster to extract values by index than e.g. l.split()
 
-            # momenta
-            px = _ffloat(l[121:144])
-            py = _ffloat(l[145:168])
-            pz = _ffloat(l[169:192])
+            # momentum
+            # python doesn't understand fortran doubles
+            p = l[121:192].replace(b'D',b'E')
+            px = float(p[0:23])
+            py = float(p[24:47])
+            pz = float(p[48:71])
 
             # UrQMD ityp and 2*I3
             ityp = int(l[218:221])
             iso = int(l[222:224])
 
-            # determine Monte Carlo ID
-            # for antiparticles (ityp<0), negate 2*I3 and MCID
-            # checked for speed:  faster than using int(copysign(...))
-            sign = 1 if ityp > 0 else -1
-            ID = sign * _urqmd_particle_dict[abs(ityp)][sign*iso]
-
-            # transverse momentum
-            pT = sqrt(px*px + py*py)
-
-            # azimuthal angle
-            phi = atan2(py,px)
-
-            # rapidity
-            pmag = sqrt(px*px + py*py + pz*pz)
-            eta = 0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # avoid division by zero
-
-
-            # yield the Particle
-            yield Particle(ID,pT,phi,eta)
-
-        else:
-            # this is a header line
-
+        # exception => this is a header line
+        except ValueError:
+            # separate events if necessary
             if not header:
-                # switch to header mode
                 header = True
-                # yield None to separate events
                 yield
+
+        # line was successfully parsed => create a Particle
+        else:
+            # switch out of header mode
+            if header:
+                header = False
+
+            # determine if particle or antiparticle via sign of ityp
+            # about 5x faster than int(copysign(1,ityp))
+            sign = 1 if ityp > 0 else -1
+
+            # magnitude of momentum vector
+            pmag = sqrt(px*px + py*py + pz*pz)
+
+            # calculate the std. quantities ID,pT,phi,eta and create a Particle
+            # this is a little ugly but it's faster than pre-calculating and
+            # storing in four temporary objects
+            yield Particle(
+                sign * _urqmd_particle_dict[abs(ityp)][sign*iso],   # ID
+                sqrt(px*px + py*py),   # pT
+                atan2(py,px),   # phi
+                0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # eta
+            )
 
 
 def particles_from_std(files=None):
