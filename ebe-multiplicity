@@ -1,46 +1,18 @@
 #!/usr/bin/env python3
 
 
-import argparse
-import fileinput
-import sys
-
-from lib import event
-from lib.batch import Stats
-
-
-parser = argparse.ArgumentParser(description='''Calculate multiplicities from
-        standard particle info.''')
-parser.add_argument('files', nargs='*',
-        help="Files to read.  Omit or use '-' to read from stdin.")
-parser.add_argument('--stat', action='store_true',
-        help="Also calculate mean and standard deviation.  Output a final \
-        line to _stderr_ of the form 'mean stddev'.")
-args = parser.parse_args()
-
+from lib.parse import EbEParser
+from lib.ebeinput import events_from_files
 
 
 def main():
-    with fileinput.input(files=args.files,openhook=fileinput.hook_compressed) as f:
-        if args.stat:
-            # need to remember multiplicities for statistics
-            mult = []
-            
-            # loop through events, get all multiplicities
-            for e in event.frominput(f):
-                m = len(e)
-                mult.append(m)
-                print(m)
+    parser = EbEParser(
+        description='Calculate event multiplicities.')
 
-            # calc. and output stats
-            s = Stats(mult)
-            print(s,file=sys.stderr)
+    args = parser.parse_args()
 
-        else:
-            # no stats, just print multiplicities
-            for e in event.frominput(f):
-                print(len(e))
-
+    for e in events_from_files(**vars(args)):
+        print(len(e))
 
 
 if __name__ == "__main__":
