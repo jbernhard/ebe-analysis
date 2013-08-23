@@ -108,7 +108,7 @@ def particle_filter(particles,**kwargs):
     # match charged particles
     if charged:
         # retrieve ID list from PDG class
-        import pdg
+        from . import pdg
         _charged = pdg.chargedIDs()
         _filters.append(lambda p: abs(p.ID) in _charged)
 
