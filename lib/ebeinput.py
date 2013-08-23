@@ -13,6 +13,8 @@ depends on the particle generators yielding None to know when to separate
 events.
 
 All generators take filenames as their primary arguments.
+
+This module is called 'ebeinput' to avoid conflicts with the builtin input().
 """
 
 
