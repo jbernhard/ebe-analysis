@@ -57,44 +57,36 @@ Particle = namedtuple('Particle', 'ID pT phi eta')
 
 
 
-def particle_filter(particles,ID=[],charged=False,pTmin=None,pTmax=None,etamin=None,etamax=None):
+def particle_filter(particles,**kwargs):
     """
-    Factory function:  creates a function to filter Particles with specified
-    criteria.
+    Filter an iterable of particles according to specified critera.
 
-    Usage
-    -----
-    >>> pf = particle_filter(criterion1,criterion2,...)
+    Typical usage is
+
+    >>> particles = particle_filter(particles, **filterargs)
+
+    Arguments
+    ---------
+    particles -- iterable of Particle objects
+    kwargs -- filtering criteria
 
     Allowed criteria are:
     ID -- a list of particle IDs
     charged -- boolean, shortcut to select all charged particles
-    pTmin,pTmax -- range of pT; can omit either min or max
-    etamin,etamax -- range of eta; if only etamax, assume |eta| < etamax;
-        if only etamin, assume etamin < |eta|
+    pTmin,pTmax -- range of pT; ok to specify only one
+    etamin,etamax -- range of eta
+        if only etamax, interpreted as |eta| < etamax
+        if only etamin, interpreted as etamin < |eta|
 
-    After creating a particle_filter, it is applied to Particle objects.  All
-    criteria must be met for the filter to return True, e.g.:
+    Returns
+    -------
+    filtered iterable of particles
+    if no filtering criteria were specified, returns particles unmodified
 
-    >>> pf = particle_filter(ID=[211],pTmin=0.5,etamax=2.5)
-    >>> p1 = Particle(ID=211,pT=1.0,phi=1.0,eta=1.0)
-    >>> pf(p1)
-    True
-    >>> p2 = Particle(ID=211,pT=1.0,phi=1.0,eta=3.0)
-    >>> pf(p2)
-    False
-
-    As its name suggests, a particle_filter() is ideal for use with Python's
-    builtin filter(), e.g.:
-
-    >>> list(filter(pf,(p1,p2)))
-    [True, False]
-
-    In general, iterables of particles may be filtered via
-
-    >>> filter(particle_filter(...), particles)
-
-    Note that particle_filter() returns True when applied to None.
+    Notes
+    -----
+    The filter evaluates to True on None.  This ensures proper event separation
+    with particles_from_<format> generators.
 
     """
 
@@ -104,45 +96,62 @@ def particle_filter(particles,ID=[],charged=False,pTmin=None,pTmax=None,etamin=N
     ### create a lambda function for all specified criteria
     ### each lambda is a boolean function of Particle objects
 
+    ID = kwargs.get('ID',[])
+    charged = kwargs.get('charged',False)
+
+    assert not (ID and charged)
+
     # match particle ID
     if ID:
-        _filters.append(lambda Particle: abs(Particle.ID) in ID)
+        _filters.append(lambda p: p.ID in ID)
 
     # match charged particles
     if charged:
         # retrieve ID list from PDG class
         import pdg
         _charged = pdg.chargedIDs()
-        _filters.append(lambda Particle: abs(Particle.ID) in _charged)
+        _filters.append(lambda p: abs(p.ID) in _charged)
 
+
+    pTmin = kwargs.get('pTmin',None)
+    pTmax = kwargs.get('pTmax',None)
 
     # match pT range
     if pTmin and pTmax:
-        _filters.append(lambda Particle: pTmin < Particle.pT < pTmax)
+        assert 0 < pTmin < pTmax
+        _filters.append(lambda p: pTmin < p.pT < pTmax)
 
     elif pTmin and not pTmax:
-        _filters.append(lambda Particle: pTmin < Particle.pT)
+        assert pTmin > 0
+        _filters.append(lambda p: pTmin < p.pT)
 
     elif pTmax and not pTmin:
-        _filters.append(lambda Particle: Particle.pT < pTmax)
+        assert pTmax > 0
+        _filters.append(lambda p: p.pT < pTmax)
 
+
+    etamin = kwargs.get('etamin',None)
+    etamax = kwargs.get('etamax',None)
 
     # match eta range
     if etamax and etamin:
-        _filters.append(lambda Particle: etamin < Particle.eta < etamax)
+        assert etamin < etamax
+        _filters.append(lambda p: etamin < p.eta < etamax)
 
     elif etamin and not etamax:
-        _filters.append(lambda Particle: etamin < abs(Particle.eta))
+        assert etamin > 0
+        _filters.append(lambda p: etamin < abs(p.eta))
 
     elif etamax and not etamin:
-        _filters.append(lambda Particle: abs(Particle.eta) < etamax)
+        assert etamax > 0
+        _filters.append(lambda p: abs(p.eta) < etamax)
 
 
     if _filters:
-        # match all specified filters
-        def func(Particle):
-            return all(f(Particle) for f in _filters) if Particle else True
-        return filter(func, particles)
+        # create a filtered iterable
+        # True if all specified criteria are satisfied
+        # or if the "particle" is None
+        return (p for p in particles if p is None or all(f(p) for f in _filters))
     else:
         # if no filters, just return the iterable as is
         return particles
