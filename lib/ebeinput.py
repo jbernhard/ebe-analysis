@@ -321,7 +321,7 @@ _format_dict = {
 }
 
 
-def events_from_files(files=None,inputformat='auto',**filterargs):
+def events_from_files(files=None,inputformat='auto',**kwargs):
     """
     Generate events (lists of particles) by splitting an iterable of particles
     into sublists.
@@ -329,8 +329,8 @@ def events_from_files(files=None,inputformat='auto',**filterargs):
     Arguments
     ---------
     files -- list of filenames to read
-    inputformat -- 'std' or 'urqmd'
-    filterargs -- key-value pairs for a particle_filter
+    inputformat -- one of 'auto', 'std', 'urqmd'
+    kwargs -- for particle_filter
 
     Yields
     ------
@@ -352,7 +352,7 @@ def events_from_files(files=None,inputformat='auto',**filterargs):
 
     # filter particles if necessary
     if any(filterargs.values()):
-        particles = particle_filter(particles,**filterargs)
+        particles = particle_filter(particles,**kwargs)
 
     # init. empty event
     event = []
