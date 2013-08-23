@@ -338,6 +338,8 @@ def events_from_files(files=None,inputformat='auto',**kwargs):
 
     """
 
+    assert inputformat in ['auto','std','urqmd']
+
     # autodetect input format
     # very simple:  if '.f13' is in the first filename, set format to urqmd
     # else set to std
