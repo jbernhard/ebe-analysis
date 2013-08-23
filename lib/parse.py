@@ -40,10 +40,6 @@ parent_parser.add_argument('-f', '--format', dest='inputformat',
 filter_parser = parent_parser.add_argument_group('particle filtering arguments')
 
 
-# IDs and charged should not be specified simultaneously
-ID_group = filter_parser.add_mutually_exclusive_group()
-
-
 def intlist(string):
     try:
         value = [int(i) for i in string.split(',')]
@@ -53,10 +49,10 @@ def intlist(string):
     else:
         return value
 
-ID_group.add_argument('-i', '--ID', type=intlist, metavar='IDs',
+filter_parser.add_argument('-i', '--ID', type=intlist, metavar='IDs',
     help='Particle IDs, comma-separated.')
 
-ID_group.add_argument('-c', '--charged', action='store_true',
+filter_parser.add_argument('-c', '--charged', action='store_true',
     help='All charged particles.')
 
 
