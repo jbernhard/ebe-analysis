@@ -16,7 +16,7 @@ with ebeinput.events_from_files, e.g.
 """
 
 
-from argparse import ArgumentParser
+from argparse import ArgumentParser, ArgumentTypeError
 from functools import partial
 
 
@@ -43,15 +43,34 @@ filter_parser = parent_parser.add_argument_group('particle filtering arguments')
 # IDs and charged should not be specified simultaneously
 ID_group = filter_parser.add_mutually_exclusive_group()
 
-ID_group.add_argument('-i', '--ID', type=int, nargs='+',
-    help='Particle IDs.')
+
+def intlist(string):
+    try:
+        value = [int(i) for i in string.split(',')]
+    except ValueError:
+        raise ArgumentTypeError(string +
+            ' is not a comma-separated list of integers')
+    else:
+        return value
+
+ID_group.add_argument('-i', '--ID', type=intlist, metavar='IDs',
+    help='Particle IDs, comma-separated.')
 
 ID_group.add_argument('-c', '--charged', action='store_true',
     help='All charged particles.')
 
 
-filter_parser.add_argument('-p', '--pTmin', type=float, help='pT minimum.')
-filter_parser.add_argument('-q', '--pTmax', type=float, help='pT maximum.')
+def positive_float(string):
+    value = float(string)
+    if value < 0:
+        raise ArgumentTypeError('must be positive')
+    return value
+
+filter_parser.add_argument('-p', '--pTmin', type=positive_float,
+    help='pT minimum.')
+filter_parser.add_argument('-q', '--pTmax', type=positive_float,
+    help='pT maximum.')
+
 
 filter_parser.add_argument('-g', '--etamin', type=float,
     help='eta minimum; if no etamax, interpreted as etamin < |eta|.')
