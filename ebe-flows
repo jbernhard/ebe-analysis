@@ -25,14 +25,17 @@ def main():
 
     args = parser.parse_args()
 
-    vnmin,vnmax = args.vn
+
+    # define a simple function to calculate the flows for each event
+    # depends on whether vectors or magnitudes were requested
+    if args.vectors:
+        flows = lambda e: Flows(e, args.vn[0], args.vn[1]).vectorchain()
+    else:
+        flows = lambda e: Flows(e, args.vn[0], args.vn[1]).magnitudes()
+
 
     for e in events_from_files(**vars(args)):
-        fl = Flows(e,vnmin,vnmax)
-        if args.vectors:
-            print(*fl.vectorchain())
-        else:
-            print(*fl.magnitudes())
+        print(*flows(e))
 
 
 if __name__ == "__main__":
