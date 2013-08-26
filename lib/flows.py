@@ -42,7 +42,7 @@ class Flows:
             ### use numpy to calculate flows
             # much faster than pure python since phi will typically have size ~10^3
 
-            phi = np.fromiter((p.phi for p in event), float, count=self.npart)
+            phi = np.array([p.phi for p in event])
 
             for n in range(self.vnmin,self.vnmax+1):
                 nphi = n*phi
