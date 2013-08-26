@@ -16,7 +16,7 @@ with ebeinput.events_from_files, e.g.
 """
 
 
-from argparse import ArgumentParser, ArgumentTypeError
+from argparse import ArgumentParser, ArgumentTypeError, Action
 from functools import partial
 
 
@@ -72,6 +72,25 @@ filter_parser.add_argument('-g', '--etamin', type=float,
     help='eta minimum; if no etamax, interpreted as etamin < |eta|.')
 filter_parser.add_argument('-e', '--etamax', type=float,
     help='eta maximum; if no etamin, equivalent to |eta| < etamax.')
+
+
+class ATLASAction(Action):
+    def __call__(self,parser,namespace,value,option_string=None):
+        setattr(namespace,'pTmin',0.5)
+        setattr(namespace,'etamax',2.5)
+        setattr(namespace,'charged',True)
+
+filter_parser.add_argument('-a', '--atlas', action=ATLASAction, nargs=0,
+    help='Shortcut for charged particles, pT > 0.5, |eta| < 2.5 [ATLAS].')
+
+
+class MidAction(Action):
+    def __call__(self,parser,namespace,value,option_string=None):
+        setattr(namespace,'etamax',0.5)
+        setattr(namespace,'charged',True)
+
+filter_parser.add_argument('-m', '--mid', action=MidAction, nargs=0,
+    help='Shortcut for charged particles, |eta| < 0.5.')
 
 
 """
