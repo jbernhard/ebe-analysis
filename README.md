@@ -61,7 +61,7 @@ Read all files in the cwd and store in standard form:
     ebe-read *.f13 | ebe-flows
     ebe-flows events.dat
 
-The default range of v\_n is 2-6.  This may be customized via the `-n/--vn` option, e.g. `ebe-flows -n 2 6`.
+The default range of v\_n is 2-6 and is set by `-n/--vn`, e.g. `ebe-flows -n 2 6`.
 
 Flows are output in the format
 
@@ -93,12 +93,6 @@ Calculate mid-rapidity charged-particle yields from standard format:
 
     ebe-multiplicity --charged --etamax 0.5 events.dat
     ebe-multiplicity --mid events.dat
-
-Assume `0.f13.gz`, `1.f13.gz` are gzipped UrQMD files containing one or more events.  The following commands are equivalent:
-
-    ebe-read 0.f13.gz 1.f13.gz
-    zcat 0.f13.gz 1.f13.gz | ebe-read
-    gzip -d 0.f13.gz 1.f13.gz && ebe-read 0.f13 1.f13
 
 
 
@@ -158,7 +152,7 @@ The exact same thing can be accomplished with
 
     parallel -Xk ebe-read ::: *.f13 > all.dat
 
-The reader is encouraged to read the Parallel [man page](https://www.gnu.org/software/parallel/man.html), but to summarize:
+The reader is encouraged to peruse the Parallel [man page](https://www.gnu.org/software/parallel/man.html), but to summarize:
 
 * `:::` indicates the list of arguments.
 * `-X` splits the arguments into approximately equal groups for each thread, e.g. on a quad-core machine the 40 file names are split into 4 groups of 10.  The
