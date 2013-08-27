@@ -6,8 +6,7 @@ from lib.ebeinput import events_from_files
 
 
 def main():
-    parser = EbEParser(
-        description='Calculate event multiplicities.')
+    parser = EbEParser(description='Calculate event multiplicities.')
 
     args = parser.parse_args()
 
