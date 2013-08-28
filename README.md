@@ -98,13 +98,13 @@ Calculate mid-rapidity charged-particle yields from standard format:
 
 ## Optimization
 
-All benchmarks were performed on an Intel Core i5-2500 (four cores at 3.3 GHz).  Test files were stored in tmpfs to eliminate disk IO effects.  Reading large
+All benchmarks were performed on an Intel i5-2500 (four cores at 3.3 GHz).  Test files were stored in tmpfs to eliminate disk IO effects.  Reading large
 files from e.g. NFS will probably be slower.
 
 ### Event reading speed
 
-Reading UrQMD is considerably slower than standard format due to the additional processing required for UrQMD.  For a test event of 8571 particles, reading in
-UrQMD format took 66.3 ms; reading in standard format took only 29.6 ms.
+Reading UrQMD is considerably slower than standard format due to the additional processing required.  For a test event of 8571 particles,
+reading in UrQMD format took 66.3 ms; reading in standard format took only 29.6 ms.
 
 Note that these are the reading times only; printing adds somewhat more (the precise amount depends on if the output is redirected).
 
@@ -116,13 +116,13 @@ Reading the 8571 particle test event in standard format and redirecting the outp
 
 ### Compression
 
-All scripts can read compressed files transparently (gzip,bz2,xz).  For example,
+All scripts can read compressed files (gzip,bz2,xz) transparently.  For example,
 
     ebe-read events.f13.gz
 
 works fine.  However, Python's decompression is somewhat slower than the C versions, so it's generally better to use e.g.
 
-    zcat events.f13.gz | ebe-read
+    zcat events.f13.gz | ebe-read -f urqmd
 
 The 8571-particle test event takes 205 ms the first way and 175 ms the second way (i.e. zcat has negligible overhead).
 
@@ -133,20 +133,18 @@ xz typically offers the best compression, but gzip is the fastest.
 EbE-analysis does not have native parallelization, and I have no plans to implement it, for I believe it would be beyond the scope of the project and the Unix
 philosophy (is there a parallel grep?).  However, the wonderful [GNU Parallel](https://www.gnu.org/software/parallel) provides painless and effective parallelization of shell loops.
 
-Suppose I have 40 files, `0-39.f13`, which I want to process.  On my quad-core machine, I should split the 40 files into four groups and start four instances of the
-executable, something like
+Suppose I have 40 files, `0-39.f13`, which I want to process. On my quad-core machine, I should split the 40 files into four groups, start four instances of the
+executable, store the output in temporary files, then combine and clear the temporaries:
 
-    ebe-read [0-9].f13 > 0-9.dat
-    ebe-read 1[0-9].f13 > 10-19.dat
-    ebe-read 2[0-9].f13 > 20-29.dat
-    ebe-read 3[0-9].f13 > 30-39.dat
+    ebe-read [0-9].f13 > tmp/0-9.dat &
+    ebe-read 1[0-9].f13 > tmp/10-19.dat &
+    ebe-read 2[0-9].f13 > tmp/20-29.dat &
+    ebe-read 3[0-9].f13 > tmp/30-39.dat &
+    cat tmp/*.dat > all.dat
+    rm -r tmp
 
-But these are probably just temporary files, so I need to combine them and delete the temporaries:
-
-    cat 0-9.dat 10-19.dat 20-29.dat 30-39.dat > all.dat
-    rm 0-9.dat 10-19.dat 20-29.dat 30-39.dat
-
-This works, but is very annoying.
+This works, but would be annoying to do repeatedly.  It could be semi-automated with a script, but that would likely be inflexible and
+error-prone.
 
 The exact same thing can be accomplished with
 
