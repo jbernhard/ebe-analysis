@@ -3,7 +3,7 @@
 
 from lib.parse import EbEParser
 from lib.ebeinput import events_from_files
-from lib.flows import Flows
+from lib.flows import flow_function
 
 
 def main():
@@ -26,16 +26,12 @@ def main():
     args = parser.parse_args()
 
 
-    # define a simple function to calculate the flows for each event
-    # depends on whether vectors or magnitudes were requested
-    if args.vectors:
-        flows = lambda e: Flows(e, args.vn[0], args.vn[1]).vectorchain()
-    else:
-        flows = lambda e: Flows(e, args.vn[0], args.vn[1]).magnitudes()
+    flowcalc = flow_function(args.vn[0], args.vn[1],
+            'vectorchain' if args.vectors else 'magnitudes')
 
 
     for e in events_from_files(**vars(args)):
-        print(*flows(e))
+        print(*flowcalc(e))
 
 
 if __name__ == "__main__":
