@@ -9,6 +9,35 @@ from math import atan2, sqrt
 from numpy import array, cos, sin
 
 
+def flow_function(vnmin,vnmax,method='magnitudes'):
+    """
+    Factory function:  create a flow-calculator function for use with events.
+
+    This is useful for calculating flows the exact same way on a large number of
+    events.
+
+    Arguments
+    ---------
+    vnmin,vnmax -- range of v_n
+    method -- the method of Flows which should be called
+
+    Returns
+    -------
+    function of events
+
+    Example:
+    >>> flowcalc = flow_function(vnmin,vnmax,'magnitudes')
+    >>> for e in events:
+            flowcalc(e)
+
+    """
+
+    def f(event):
+        return getattr(Flows.from_event(event,vnmin,vnmax),method)()
+
+    return f
+
+
 class Flows:
     """
     Store flow coefficients and provide related methods.
