@@ -17,7 +17,7 @@ pdgurl = 'http://pdg.lbl.gov/2012/mcdata/mass_width_2012.mcd'
 #  2 -  9 \ Monte Carlo particle numbers as described in the "Review of
 # 10 - 17 | Particle Physics". Charge states appear, as appropriate,
 # 18 - 25 | from left-to-right in the order -, 0, +, ++.
-# 26 - 33 / 
+# 26 - 33 /
 #      34   blank
 # 35 - 49   central value of the mass or width (double precision)
 #      50   blank

@@ -26,12 +26,12 @@ parent_parser = ArgumentParser(add_help=False)
 
 
 # filenames are the only positional args
-parent_parser.add_argument('files', nargs='*', 
+parent_parser.add_argument('files', nargs='*',
     help="Files to read.  Omit or use '-' to read from stdin.")
 
 # optional arg: file format
 parent_parser.add_argument('-f', '--format', dest='inputformat',
-    choices=['auto','std','urqmd'], default='auto', 
+    choices=['auto','std','urqmd'], default='auto',
     help='Input format, default:  %(default)s.')
 
 
@@ -94,7 +94,7 @@ filter_parser.add_argument('-m', '--mid', action=MidAction, nargs=0,
 
 
 """
-The EbEParser class.  
+The EbEParser class.
 
 Just a regular ArgumentParser but with the parents kwarg preset.
 """
