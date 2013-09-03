@@ -3,57 +3,68 @@ A Particle contains information about a physical particle.
 """
 
 
-from collections import namedtuple
-
-
 __all__ = ['Particle', 'particle_filter']
 
 
-"""
-The Particle class.
 
-Stores standard particle information (ID,pT,phi,eta) using the
-collections.namedtuple container.
+class Particle:
+    """
+    Stores standard particle information (ID,pT,phi,eta).
 
-Usage
------
-A Particle is typically created with positional arguments
+    Usage
+    -----
+    A Particle is typically created with positional arguments
 
->>> Particle(ID,pT,phi,eta)
+    >>> Particle(ID,pT,phi,eta)
 
-Keyword arguments also work
+    Keyword arguments also work
 
->>> Particle(211,1.0,2.0,3.0) == Particle(pT=1.0,phi=2.0,eta=3.0,ID=211)
-True
+    >>> Particle(pT=1.0,phi=2.0,eta=3.0,ID=211)
 
-Fields are addressed directly by name
+    Standard order (ID,pT,phi,eta) is retained even if the Particle is created with
+    out-of-order keyword arguments.
 
->>> p = Particle(211,1.0,2.0,3.0)
->>> p.pT
-1.0
+    Fields are addressed directly by name
 
-This is superior to a regular tuple, where fields must be addressed by index
+    >>> p = Particle(211,1.0,2.0,3.0)
+    >>> p.pT
+    1.0
 
->>> p[1]
+    This is superior to a list/tuple, where fields must be addressed by index
 
-or dictionaries, where fields are addressed by name but in a comparatively less
-readable manner
+    >>> p[1]
 
->>> p['pT']
+    or dictionaries, where fields are addressed by name but in a comparatively less
+    readable manner
 
-The namedtuple retains order, unlike a dictionary
+    >>> p['pT']
 
->>> list(p)
-[211, 1.0, 2.0, 3.0]
->>> print(*p)
-211 1.0 2.0 3.0
+    The string representation of a Particle is a space-separated list
+    of its properties:
 
-Standard order (ID,pT,phi,eta) is retained even if the Particle is created with
-out-of-order keyword arguments.
+    >>> print(p)
+    211 1.0 2.0 3.0
 
-"""
+    """
 
-Particle = namedtuple('Particle', 'ID pT phi eta')
+    __slots__ = ('ID','pT','phi','eta')
+
+    def __init__(self,ID=0,pT=0.0,phi=0.0,eta=0.0):
+        self.ID = ID
+        self.pT = pT
+        self.phi = phi
+        self.eta = eta
+
+    def __str__(self):
+        # fastest way to create the string
+        # faster than ' '.join(...)
+        # also, print(p) with __str__ is faster than print(*p) with __iter__
+
+        return '{} {} {} {}'.format(self.ID,self.pT,self.phi,self.eta)
+
+    def __repr__(self):
+        return 'Particle(ID={}, pT={}, phi={}, eta={})'.format(self.ID,self.pT,self.phi,self.eta)
+
 
 
 

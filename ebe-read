@@ -13,7 +13,7 @@ def main():
 
     for e in events_from_files(**vars(args)):
         for p in e:
-            print(*p)
+            print(p)
         print()
 
 
