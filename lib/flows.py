@@ -4,7 +4,7 @@ Classes for calculating and storing flow coefficients.
 
 
 from itertools import chain
-from math import atan2, sqrt
+from math import atan2, floor, sqrt
 
 from numpy import array, cos, sin
 
@@ -36,6 +36,48 @@ def flow_function(vnmin,vnmax,method='magnitudes'):
         return getattr(Flows.from_event(event,vnmin,vnmax),method)()
 
     return f
+
+
+def differential_flows(events,vnmin,vnmax,width=.1,bufsize=1000000):
+    """
+    Calculate differential (pT) flows.
+
+    Arguments
+    ---------
+    events -- iterable of events
+    vnmin,vnmax -- range of v_n
+    width -- width of p_T bins in GeV [optional, default 0.1]
+    bufsize -- buffer size for BufferedFlows [optional, default 1e6]
+
+    Returns
+    -------
+    pT_mid, Flows -- for each pT bin, where pT_mid is the middle pT value of
+                     the bin and Flows is a BufferedFlows instance
+
+    """
+
+    # container for BufferedFlows instances
+    flows = []
+
+    # iterate over all particles
+    for p in chain.from_iterable(events):
+
+        # bin index
+        index = floor(p.pT/width)
+
+        # create necessary BufferedFlows as needed
+        while len(flows) <= index:
+            flows.append(BufferedFlows(vnmin,vnmax,bufsize))
+
+        # add particle to appropriate buffer
+        flows[index].add_particle(p)
+
+    # remember to flush all buffers
+    for f in flows:
+        f.update()
+
+    # round pT_mid to remove annoying floating-point errors
+    return ((round((2*i+1)/2*width,10), f) for i,f in enumerate(flows))
 
 
 class Flows:
