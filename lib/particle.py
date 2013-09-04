@@ -63,7 +63,8 @@ class Particle:
         return '{} {} {} {}'.format(self.ID,self.pT,self.phi,self.eta)
 
     def __repr__(self):
-        return 'Particle(ID={}, pT={}, phi={}, eta={})'.format(self.ID,self.pT,self.phi,self.eta)
+        return self.__class__.__name__ + '(ID=%r,pT=%r,phi=%r,eta=%r)' \
+                % (self.ID,self.pT,self.phi,self.eta)
 
 
 
