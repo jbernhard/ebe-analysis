@@ -11,6 +11,25 @@ class Particle:
     """
     Stores standard particle information (ID,pT,phi,eta).
 
+    This is the base class for the entire ebe-analysis package.  A large
+    calculation may need 10^6 Particles.  Therefore, it is designed to be as
+    lightweight and fast as possible, sometimes at the expense of usability.
+
+    Somewhat similar to collections.namedtuple, except Particles _only_
+    accessible by field name.  They are not iterable, nor is there a built-in
+    conversion to a dictionary.
+
+    There is no sanity checking on the input parameters, for any such checks
+    would add nontrivial time.  Any set of four arguments will be accepted (but
+    illogical arguments will likely cause problems later).
+
+    Particles are faster to create than namedtuples.  Access time is the same as
+    built-in containers (and faster than namedtuples).
+
+    Memory footprint is minimized via __slots__.  This means the standard four
+    quantities are the only valid attributes for this class.  Trying to do
+    something like Particle.x = 0 will raise AttributeError.
+
     Usage
     -----
     A Particle is typically created with positional arguments
@@ -21,8 +40,8 @@ class Particle:
 
     >>> Particle(pT=1.0,phi=2.0,eta=3.0,ID=211)
 
-    Standard order (ID,pT,phi,eta) is retained even if the Particle is created with
-    out-of-order keyword arguments.
+    though this is somewhat slower.  Standard order (ID,pT,phi,eta) is retained
+    even with out-of-order keyword arguments.
 
     Fields are addressed directly by name
 
@@ -31,13 +50,8 @@ class Particle:
     1.0
 
     This is superior to a list/tuple, where fields must be addressed by index
-
-    >>> p[1]
-
-    or dictionaries, where fields are addressed by name but in a comparatively less
-    readable manner
-
-    >>> p['pT']
+    (p[1]), or dictionaries, where fields are addressed by name but in a
+    comparatively less readable manner (p['pT']).
 
     The string representation of a Particle is a space-separated list
     of its properties:
