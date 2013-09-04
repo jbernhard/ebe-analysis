@@ -3,7 +3,7 @@
 
 from lib.parse import EbEParser
 from lib.ebeinput import events_from_files
-from lib.flows import flow_function
+from lib.flows import Flows, differential_flows
 
 
 def main():
@@ -16,22 +16,33 @@ def main():
     parser.add_argument('-v', '--vectors', action='store_true',
         help='''Output flow vector components instead of magnitudes:
         v_min_x v_min_y ... v_max_x v_max_y''')
-    #parser.add_argument('--diff', nargs='?',
-    #        metavar='width', type=float, const=0.1, default=0,
-    #        help='''Calculate average differential flows instead of
-    #        event-by-event flows.  The optional argument `width' sets the pT bin
-    #        width in GeV, default 0.1.  Output format:  pT_mid N_particles v_min
-    #        ... v_max, where pT_mid is the middle pT value of the bin.''')
+    parser.add_argument('-d', '--diff', nargs='?',
+            metavar='width', type=float, const=0.1, default=0,
+            help='''Calculate average differential flows instead of
+            event-by-event flows.  The optional argument `width' sets the pT bin
+            width in GeV, default 0.1.  Output format:  pT_mid N_particles v_min
+            ... v_max, where pT_mid is the middle pT value of the bin.''')
 
     args = parser.parse_args()
 
+    # set flow method based on args
+    # create shortcut function to call the method
+    method = 'vectorchain' if args.vectors else 'magnitudes'
+    flowcalc = lambda f: getattr(f,method)()
 
-    flowcalc = flow_function(args.vn[0], args.vn[1],
-            'vectorchain' if args.vectors else 'magnitudes')
+    vnmin,vnmax = args.vn
 
+    events = events_from_files(**vars(args))
 
-    for e in events_from_files(**vars(args)):
-        print(*flowcalc(e))
+    # differential flows
+    if args.diff:
+        for pT,fl in differential_flows(events,vnmin,vnmax,args.diff):
+            print(pT,fl.multiplicity,*flowcalc(fl))
+
+    # event-by-event flows
+    else:
+        for e in events:
+            print(*flowcalc(Flows.from_event(e,vnmin,vnmax)))
 
 
 if __name__ == "__main__":
