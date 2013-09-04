@@ -3,8 +3,8 @@ Classes for calculating and storing flow coefficients.
 """
 
 
-from itertools import chain
-from math import atan2, floor, sqrt
+from itertools import chain, repeat
+from math import atan2, exp, floor, sqrt
 
 from numpy import array, cos, sin
 
@@ -53,13 +53,38 @@ def differential_flows(events,vnmin,vnmax,width=.1,bufsize=1000000):
     else:
         flows = []
 
+        '''
+        pT distributions are approximately exponential, so let's use that to
+        calculate the buffer size for each bin.  The low-pT bins should have
+        large buffers and the bufsizes should decrease exponentially with pT.
+
+        Let N be the total bufsize over K bins and (n_0,n_1,...,n_{K-1)) be the
+        bufsizes of each bin; then sum(ni) = N and n_{i+1}/n_i = exp(-w), where
+        w is the width of each bin.  This leads to
+
+        n_i = N * exp((K-i)*w) / sum_j(exp(i*w))
+
+        The number of bins K depends on the max pT which is not known initially.
+        A reasonable guess is max pT ~ 5, i.e. K ~ 5/w.  If there does happen to
+        be more than K bins, the extras shall have the same buffer size as bin K.
+        '''
+        approxbins = round(5/width)
+        exps = [exp(i*width) for i in range(approxbins)]
+        minbuf = bufsize/sum(exps)
+        # generate the exponentially falling buffer sizes
+        # once exhausted, generate the last value forever
+        bufsizes = chain((round(minbuf*i) for i in reversed(exps)),
+                repeat(round(minbuf)))
+
         for p in particles:
             # bin index
             index = floor(p.pT/width)
 
             # create BufferedFlows as needed
             while len(flows) <= index:
-                flows.append(BufferedFlows(vnmin,vnmax,bufsize))
+                # refuse to create buffers smaller than 1000
+                flows.append(BufferedFlows(vnmin,vnmax,
+                    max(next(bufsizes),1000)))
 
             # add particle to appropriate buffer
             flows[index].add_particle(p)
