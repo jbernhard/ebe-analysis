@@ -19,6 +19,7 @@ def differential_flows(events,vnmin,vnmax,width=.1,bufsize=1000000):
     vnmin,vnmax -- range of v_n
     width -- width of p_T bins in GeV [optional, default 0.1]
     bufsize -- buffer size for BufferedFlows [optional, default 1e6]
+               if 0, do not buffer [beware of memory usage]
 
     Returns
     -------
@@ -27,25 +28,45 @@ def differential_flows(events,vnmin,vnmax,width=.1,bufsize=1000000):
 
     """
 
-    # container for BufferedFlows instances
-    flows = []
+    # chain events together
+    particles = chain.from_iterable(events)
 
-    # iterate over all particles
-    for p in chain.from_iterable(events):
+    # no buffering, use regular Flows
+    if bufsize == 0:
+        subevents = []
 
-        # bin index
-        index = floor(p.pT/width)
+        for p in particles:
+            # bin index
+            index = floor(p.pT/width)
 
-        # create necessary BufferedFlows as needed
-        while len(flows) <= index:
-            flows.append(BufferedFlows(vnmin,vnmax,bufsize))
+            # create events as needed
+            while len(subevents) <= index:
+                subevents.append([])
 
-        # add particle to appropriate buffer
-        flows[index].add_particle(p)
+            # add particle to appropriate event
+            subevents[index].append(p)
 
-    # remember to flush all buffers
-    for f in flows:
-        f.update()
+        # calculate flows for each subevent
+        flows = (Flows.from_event(e,vnmin,vnmax) for e in subevents)
+
+    # use BufferedFlows
+    else:
+        flows = []
+
+        for p in particles:
+            # bin index
+            index = floor(p.pT/width)
+
+            # create BufferedFlows as needed
+            while len(flows) <= index:
+                flows.append(BufferedFlows(vnmin,vnmax,bufsize))
+
+            # add particle to appropriate buffer
+            flows[index].add_particle(p)
+
+        # remember to flush all buffers
+        for f in flows:
+            f.update()
 
     # round pT_mid to remove annoying floating-point errors
     return ((round((2*i+1)/2*width,10), f) for i,f in enumerate(flows))
