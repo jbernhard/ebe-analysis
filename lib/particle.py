@@ -49,7 +49,7 @@ class Particle:
 
     __slots__ = ('ID','pT','phi','eta')
 
-    def __init__(self,ID=0,pT=0.0,phi=0.0,eta=0.0):
+    def __init__(self,ID,pT,phi,eta):
         self.ID = ID
         self.pT = pT
         self.phi = phi
