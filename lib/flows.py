@@ -222,7 +222,7 @@ class BufferedFlows(Flows):
 
         # ensure the buffer isn't empty
         # otherwise we get nan
-        if len(self._buffer) > 0:
+        if self._buffer:
             # numpy array of angles
             phi = array([p.phi for p in self._buffer])
 
