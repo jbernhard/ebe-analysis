@@ -3,12 +3,12 @@
 
 from lib.parse import EbEParser
 from lib.ebeinput import events_from_files
-from lib.flows import Flows, differential_flows
+from lib import flows
 
 
 def main():
     parser = EbEParser(description='''Calculate flow coefficients v_n from
-        standard particle info.  Default output format: v_min ... v_max.''')
+        standard particle info.  Default output format: v_min ... v_max''')
 
     parser.add_argument('-n', '--vn', type=int, nargs=2,
         metavar=('min','max'), default=[2,6],
@@ -18,10 +18,13 @@ def main():
         v_min_x v_min_y ... v_max_x v_max_y''')
     parser.add_argument('-d', '--diff', nargs='?',
             metavar='width', type=float, const=0.1, default=0,
-            help='''Calculate average differential flows instead of
+            help='''Calculate average differential (pT) flows instead of
             event-by-event flows.  The optional argument `width' sets the pT bin
             width in GeV, default 0.1.  Output format:  pT_mid N_particles v_min
             ... v_max, where pT_mid is the middle pT value of the bin.''')
+    parser.add_argument('--avg', action='store_true',
+        help='''Calculate average flows over all events instead of
+        event-by-event.''')
 
     args = parser.parse_args()
 
@@ -36,13 +39,17 @@ def main():
 
     # differential flows
     if args.diff:
-        for pT,fl in differential_flows(events,vnmin,vnmax,args.diff):
+        for pT,fl in flows.differential(events,vnmin,vnmax,args.diff):
             print(pT,fl.multiplicity,*flowcalc(fl))
+
+    # average flows
+    elif args.avg:
+        print(*flowcalc(flows.average(events,vnmin,vnmax)))
 
     # event-by-event flows
     else:
-        for e in events:
-            print(*flowcalc(Flows.from_event(e,vnmin,vnmax)))
+        for fl in flows.event_by_event(events,vnmin,vnmax):
+            print(*flowcalc(fl))
 
 
 if __name__ == "__main__":
