@@ -71,6 +71,15 @@ With the `-v/--vectors` flag, flow vector components are output:
 
     v_min_x v_min_y ... v_max_x v_max_y
 
+Use the `--avg` flag for average flows over all events.
+
+Use `-d/--diff [width]` for average differential flows in pT-bins of the specified width.  In this case, the output format is
+
+    pT_mid N_particles flows
+
+where `pT_mid` is the middle pT value of the bin, `N_particles` is the number of particles in that bin, and `flows` are the calculated flows for the bin, either
+magnitudes or vectors as requested.
+
 ### Calculating multiplicities
 
 `ebe-multiplicity` reads events and calculates multiplicities event-by-event.
@@ -176,13 +185,9 @@ About 3.1 times faster, and the output is identical.
 ## To do
 
 * **Improved flow calculations:**
-    * Differential flows.
     * Choice of method, event-plane or two-particle correlation.
     * ATLAS-style unfolding.
     * Fits to flow coefficient distributions.
-
-* **Abstract file selection:**
-Ability to select event files by physical parameters instead of filename.
 
 * **Plotting:**
 Shortcuts for making common plots with matplotlib.
