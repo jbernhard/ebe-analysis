@@ -1,164 +1,244 @@
 """
-Classes for calculating and storing flow coefficients.
+Calculate and store flow coefficients.
+
+The main implementation of the module is the Flows class.  Several functions
+exist for processing batches of events:
+
+    event_by_event() -- creates a Flows for each event independently
+    average() -- creates a single Flows averaged over all events
+    differential() -- creates Flows by pT bin, averaged over all events
+
 """
 
 
-from itertools import chain, repeat
-from math import atan2, exp, floor, sqrt
+import itertools
+import math
 
-from numpy import array, cos, sin
+import numpy as np
 
 
-def differential_flows(events,vnmin,vnmax,width=.1,bufsize=1000000):
+def event_by_event(events,vnmin,vnmax):
     """
-    Calculate differential (pT) flows.
+    Calculate flows event-by-event.
+
+    Arguments
+    ---------
+    events -- iterable of events
+    vnmin,vnmax -- range of v_n
+
+    Yields
+    ------
+    Flows -- for each event
+
+    """
+
+    for e in events:
+        yield Flows(e,vnmin,vnmax)
+
+
+def average(events,vnmin,vnmax):
+    """
+    Calculate average flows for a set of events.
+
+    Arguments
+    ---------
+    events -- iterable of events
+    vnmin,vnmax -- range of v_n
+    buffer -- boolean [optional, default True]
+
+    Returns
+    -------
+    Flows
+
+    """
+
+    fl = Flows(None,vnmin,vnmax)
+
+    for e in events:
+        fl.add_event(e)
+
+    return fl
+
+
+def differential(events,vnmin,vnmax,width=.1,bufsize=100000):
+    """
+    Calculate average differential (pT) flows for a set of events.
+
+    Particles can be processed in chunks ("buffered") to reduce memory usage.
+    Buffering is on by default and may be disable by setting the bufsize
+    argument to any false value.  Beware:  without buffering, all particles must
+    be loaded into memory.
+
+    Buffering may have an impact on speed.  To wit, the following benchmarks,
+    with vnmin,vnmax = 2,3 and bufsize = 1000000 [the default] or None
+    [buffering off].
+
+    no. events  |  no. particles  |  buffering  |  no buffering
+    -----------------------------------------------------------
+             1  |          9,472  |    10.4 ms  |       15.0 ms
+            10  |         94,782  |    75.8 ms  |       86.8 ms
+           100  |        943,262  |     816 ms  |        819 ms
+          1000  |      9,466,762  |    8100 ms  |       8460 ms
+
+    So buffering is actually faster for very large numbers of events.  Not to
+    mention, 1000 events without buffering requires ~1.5 GiB of memory.
+
 
     Arguments
     ---------
     events -- iterable of events
     vnmin,vnmax -- range of v_n
     width -- width of p_T bins in GeV [optional, default 0.1]
-    bufsize -- buffer size for BufferedFlows [optional, default 1e6]
-               if 0, do not buffer [beware of memory usage]
+    bufsize -- particle buffer size [optional, default 100000]
 
-    Returns
-    -------
-    pT_mid, Flows -- for each pT bin, where pT_mid is the middle pT value of
-                     the bin and Flows is a BufferedFlows instance
+    Yields
+    ------
+    pT_mid, Flows -- for each pT bin,
+                     where pT_mid is the middle pT value of the bin
 
     """
 
-    # chain events together
-    particles = chain.from_iterable(events)
+    floor = math.floor
 
-    # no buffering, use regular Flows
-    if bufsize == 0:
+    # flatten events
+    particles = itertools.chain.from_iterable(events)
+
+    # buffer particles
+    if bufsize:
+        flows = []
+        subevents = []
+
+        zip_longest = itertools.zip_longest
+
+        # trick to split an iterable into chunks
+        # taken from itertools recipes in the std. lib. docs
+        # once the iterable is exhausted, this will yield None
+        for buf in zip_longest(*[particles]*bufsize):
+            for p in buf:
+                try:
+                    # pT index of Particle
+                    idx = floor(p.pT/width)
+                except AttributeError:
+                    # this is None, not a Particle
+                    break
+                else:
+                    # ask forgiveness, not permission
+                    while True:
+                        try:
+                            # add particle to appropriate subevent
+                            subevents[idx].append(p)
+                        except IndexError:
+                            # create subevents as needed
+                            subevents.append([])
+                        else:
+                            break
+
+
+            # calculate flows for each subevent
+            # then clear subevents and proceed to next chunk
+            for f,s in zip_longest(flows,subevents):
+                try:
+                    f.add_event(s)
+                except AttributeError:
+                    flows.append(Flows(s,vnmin,vnmax))
+                s.clear()
+
+    # no buffering
+    else:
         subevents = []
 
         for p in particles:
-            # bin index
-            index = floor(p.pT/width)
-
-            # create events as needed
-            while len(subevents) <= index:
-                subevents.append([])
-
-            # add particle to appropriate event
-            subevents[index].append(p)
+            # ask forgiveness, not permission
+            while True:
+                try:
+                    # add particle to appropriate subevent
+                    subevents[floor(p.pT/width)].append(p)
+                except IndexError:
+                    # create subevents as needed
+                    subevents.append([])
+                else:
+                    break
 
         # calculate flows for each subevent
-        flows = (Flows.from_event(e,vnmin,vnmax) for e in subevents)
+        flows = (Flows(e,vnmin,vnmax) for e in subevents)
 
-    # use BufferedFlows
-    else:
-        flows = []
 
-        '''
-        pT distributions are approximately exponential, so let's use that to
-        calculate the buffer size for each bin.  The low-pT bins should have
-        large buffers and the bufsizes should decrease exponentially with pT.
-
-        Let N be the total bufsize over K bins and (n_0,n_1,...,n_{K-1)) be the
-        bufsizes of each bin; then sum(ni) = N and n_{i+1}/n_i = exp(-w), where
-        w is the width of each bin.  This leads to
-
-        n_i = N * exp((K-i)*w) / sum_j(exp(i*w))
-
-        The number of bins K depends on the max pT which is not known initially.
-        A reasonable guess is max pT ~ 5, i.e. K ~ 5/w.  If there does happen to
-        be more than K bins, the extras shall have the same buffer size as bin K.
-        '''
-        approxbins = round(5/width)
-        exps = [exp(i*width) for i in range(approxbins)]
-        minbuf = bufsize/sum(exps)
-        # generate the exponentially falling buffer sizes
-        # once exhausted, generate the last value forever
-        bufsizes = chain((round(minbuf*i) for i in reversed(exps)),
-                repeat(round(minbuf)))
-
-        for p in particles:
-            # bin index
-            index = floor(p.pT/width)
-
-            # create BufferedFlows as needed
-            while len(flows) <= index:
-                # refuse to create buffers smaller than 1000
-                flows.append(BufferedFlows(vnmin,vnmax,
-                    max(next(bufsizes),1000)))
-
-            # add particle to appropriate buffer
-            flows[index].add_particle(p)
-
-        # remember to flush all buffers
-        for f in flows:
-            f.update()
-
+    # return (pT_mid,Flows) for each bin
     # round pT_mid to remove annoying floating-point errors
     return ((round((2*i+1)/2*width,10), f) for i,f in enumerate(flows))
 
 
 class Flows:
     """
-    Store flow coefficients and provide related methods.
+    Calculates and stores flow coefficients and provides related methods.
+
+    Uses numpy for large arrays and pure python for small lists.
 
     Arguments
     ---------
-    vx,vy -- lists of flow vector components
+    event -- list of particles
     vnmin,vnmax -- range of v_n
-    multiplicity -- event multiplicity
+
+    If the event is any false value, the instance will be created with all flows
+    set to zero.  Events can be added later with add_event().
 
     """
 
-    def __init__(self,vx=[],vy=[],vnmin=0,vnmax=0,multiplicity=0):
-        # sanity check
-        assert len(vx) == len(vy) == vnmax - vnmin + 1
+    def __init__(self,event,vnmin,vnmax):
+        assert vnmax >= vnmin > 0
 
         # store attributes
-        self.vx = tuple(vx)
-        self.vy = tuple(vy)
         self.vnmin = vnmin
         self.vnmax = vnmax
-        self.multiplicity = multiplicity
+        self.multiplicity = 0
+
+        # init. flow vectors
+        self.vx = [0.0] * (vnmax - vnmin + 1)
+        self.vy = [0.0] * (vnmax - vnmin + 1)
+
+        self.add_event(event)
 
 
-    @classmethod
-    def from_event(cls,event,vnmin,vnmax):
+    def add_event(self,event,array=np.array,cos=np.cos,sin=np.sin):
         """
-        Alternate constructor for Flows.  Calculates flow vectors directly from
-        an event.
+        Add an event to the current flows.  Mainly useful for building up
+        average/differential flows in pieces.
+
+        For example, given a set of 100,000 particles, the flows can be
+        calculated all at once, or in 10 chunks of 10,000.
+
+        If the event is any false value, silently do nothing.
 
         Arguments
         ---------
         event -- list of particles
-        vnmin,vnmax -- range of v_n
 
         """
 
-        multiplicity = len(event)
+        if event:
+            # multiplicity of new event
+            mult_event = len(event)
 
-        if multiplicity < 2:
-            # flow doesn't make sense with too few particles
-            # in this case, set all flows to zero
-            vx = [0.0] * (vnmax - vnmin + 1)
-            vy = [0.0] * (vnmax - vnmin + 1)
+            # total multiplicity
+            mult_total = self.multiplicity + mult_event
 
-        else:
-            # init. lists of flow compenents
-            vx = []
-            vy = []
-
-            ### use numpy to calculate flows
-            # much faster than pure python since phi will typically have size ~10^3
-
+            # numpy array of angles
             phi = array([p.phi for p in event])
 
-            for n in range(vnmin,vnmax+1):
+            ### update flow vectors
+            # multiplicity-weighted average of
+            # the existing vector and the new event's vector
+            for k,n in enumerate(range(self.vnmin,self.vnmax+1)):
                 nphi = n*phi
-                # event-plane method
-                vx.append( cos(nphi).mean() )
-                vy.append( sin(nphi).mean() )
 
-        return cls(vx,vy,vnmin,vnmax,multiplicity)
+                self.vx[k] = (self.multiplicity*self.vx[k] +
+                        mult_event*cos(nphi).mean())/mult_total
+
+                self.vy[k] = (self.multiplicity*self.vy[k] +
+                        mult_event*sin(nphi).mean())/mult_total
+
+            # update multiplicity
+            self.multiplicity = mult_total
 
 
     def vectors(self):
@@ -179,10 +259,10 @@ class Flows:
         v_min_x, v_min_y, ..., v_max_x, v_may_y
 
         """
-        return chain.from_iterable(self.vectors())
+        return itertools.chain.from_iterable(self.vectors())
 
 
-    def magnitudes(self):
+    def magnitudes(self,sqrt=math.sqrt):
         """
         Return an iterable of flow magnitudes:
 
@@ -190,11 +270,10 @@ class Flows:
 
         """
 
-        # pure python is faster than numpy for such a small array
         return (sqrt(x*x + y*y) for x,y in self.vectors())
 
 
-    def angles(self):
+    def angles(self,atan2=math.atan2):
         """
         Return an iterable of flow angles:
 
@@ -203,108 +282,3 @@ class Flows:
         """
 
         return (atan2(y,x) for x,y in self.vectors())
-
-
-class BufferedFlows(Flows):
-    """
-    Subclass of Flows that buffers particles to decrease memory usage at the
-    expense of speed.
-
-    A particle object contains an int and three floats, whose C-types total 28
-    bytes of memory.  However Python objects have some overhead:  a real-world
-    test showed about 175 bytes per particle.  This means 1 GiB (2^30 bytes) of memory
-    can hold ~6e6 paricles.  Assuming ~1e4 particles per event, that's ~600
-    events per GiB of memory.
-
-    So this class is useful for average/differential flows over many (>10^3) events.
-
-    The buffering calculation introduces very slight (~10^-16) floating-point
-    errors.
-
-    Usage
-    -----
-    Create an instance via
-
-    >>> BufferedFlows(vnmin,vnmax)
-
-    where vnmin,vnmax have the usual meaning.
-
-    The optional argument 'bufsize' specifies the number of particles to hold in
-    the buffer, default 100000.  This should always be set as high as possible.
-    Calculating flows for an 8571-particle test event took 9.05, 11.4, 31.6,
-    231, and 2180 ms, for bufsizes of 10000, 1000, 100, 10, and 1, respectively.
-    The same event with Flows.from_event() took 4.49 ms.
-
-    After creating the object, give it particles via the add_particle() method.
-
-    When finished adding particles, call the update() method to flush the
-    buffer.  Then the object may be used as a regular flows object.
-
-    """
-
-    def __init__(self,vnmin,vnmax,bufsize=100000):
-        assert bufsize > 0
-
-        # init. the buffer
-        self._buffer = []
-        self._bufsize = bufsize
-
-        # store attributes
-        self.vnmax = vnmax
-        self.vnmin = vnmin
-
-        # init. vars. which will be modified later
-        self.multiplicity = 0
-        self.vx = [0.0 for _ in range(vnmin,vnmax+1)]
-        self.vy = [0.0 for _ in range(vnmin,vnmax+1)]
-
-
-    def add_particle(self,particle):
-        """
-        Add a particle to the buffer.
-
-        Automatically flushes the buffer if it has reached maximum size.
-
-        """
-
-        self._buffer.append(particle)
-
-        if len(self._buffer) >= self._bufsize:
-            self.update()
-
-
-    def update(self):
-        """
-        Flush the buffer and update flow vectors.
-
-        """
-
-        # ensure the buffer isn't empty
-        # otherwise we get nan
-        if self._buffer:
-            # numpy array of angles
-            phi = array([p.phi for p in self._buffer])
-
-            # multiplicity of the buffer
-            mult_buffer = len(self._buffer)
-
-            # total multiplicity
-            mult_total = self.multiplicity + mult_buffer
-
-            # update flow vectors via the multiplicity-weighted average of the
-            # existing vector and the buffer's vector
-            # pure python is faster than numpy for such small vectors
-            for k,n in enumerate(range(self.vnmin,self.vnmax+1)):
-                nphi = n*phi
-
-                self.vx[k] = (self.multiplicity*self.vx[k] +
-                        mult_buffer*cos(nphi).mean())/mult_total
-
-                self.vy[k] = (self.multiplicity*self.vy[k] +
-                        mult_buffer*sin(nphi).mean())/mult_total
-
-            # update multiplicity
-            self.multiplicity = mult_total
-
-            # flush buffer
-            self._buffer = []
