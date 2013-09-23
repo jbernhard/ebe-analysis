@@ -1,0 +1,38 @@
+#!/usr/bin/env python3
+
+
+import argparse
+import sys
+
+from lib.parse import intlist
+from lib import stats
+
+
+def main():
+    parser = argparse.ArgumentParser(description='''Find MLE distribution
+    parameters.  Output format:  'shapes loc scale', where each line of
+    parameters corresponds to a data column.''')
+
+    parser.add_argument('-c','--cols', type=intlist, default=None,
+            help='''Columns to fit, comma separated.  Count from 0.
+            Default: all.''')
+    
+    parser.add_argument('dist', choices=['gengamma','norm'],
+            help='''Distribution to fit, either generalized gamma or Gaussian
+            [normal].''')
+    parser.add_argument('files', nargs='*', default=['-'],
+            help='''File[s] to fit.  Multiple files are processed sequentially.
+            Omit or use '-' to read from stdin; note that in this case all input
+            will be interpreted as a single file.''')
+
+    args = parser.parse_args()
+
+
+    for f in args.files:
+        fname = sys.stdin if f == '-' else f
+        for params in stats.fit_file(fname,dist=args.dist,usecols=args.cols):
+            print(*params)
+
+
+if __name__ == "__main__":
+    main()
