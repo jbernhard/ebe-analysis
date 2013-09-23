@@ -4,7 +4,7 @@ Statistics.
 
 
 import numpy as np
-from scipy.stats import gengamma, norm
+from scipy.stats import gengamma
 
 
 """
@@ -23,7 +23,7 @@ def fit_file(fname,dist='gengamma',**kwargs):
 
     Arguments
     ---------
-    fname -- file name or object containing data columns to fit
+    fname -- file object, filename, or generator containing data columns to fit
     dist -- distribution to fit, either 'gengamma' (default) or 'norm'
     kwargs -- for np.loadtxt, except 'unpack' or 'ndmin' are ignored
 
@@ -41,6 +41,11 @@ def fit_file(fname,dist='gengamma',**kwargs):
 
     """
 
+    # ignore divide by zero errors
+    # happens when the pdf vanishes because log pdf is used for optimization
+    # doesn't affect the final result
+    np.seterr(divide='ignore')
+
     # remove 'unpack' and 'ndmin' kwargs if set
     for key in ['unpack','ndmin']:
         try:
@@ -52,9 +57,36 @@ def fit_file(fname,dist='gengamma',**kwargs):
     cols = np.loadtxt(fname,unpack=True,ndmin=2,**kwargs)
 
     # set fitting distribution
-    try:
-        dist = eval(dist)
-    except NameError:
-        raise ValueError('invalid distribution: ' + dist)
+    if dist == 'norm':
+        # fitting a gaussian is equivalent to calculating mean and stddev.
+        # but the latter is much faster
+        _fit = describe
 
-    return (dist.fit(c) for c in cols)
+    else:
+        try:
+            dist = eval(dist)
+        except NameError:
+            raise ValueError('invalid distribution: ' + dist)
+        else:
+            _fit = dist.fit
+
+    return map(_fit, cols)
+
+
+def describe(data):
+    """
+    Calculate descriptive stats (mean, stddev).
+
+    Arguments
+    ---------
+    data -- array-like
+
+    Returns
+    -------
+    (mean, stddev)
+
+    """
+
+    data = np.asarray(data)
+
+    return (data.mean(), data.std())
