@@ -49,8 +49,10 @@ def main():
                 print(*p)
 
         else:
-            print(f)
-            with open(args.output.format(name=basename), 'w') as outfile:
+            outfname = args.output.format(name=basename)
+            print(f,'->',outfname)
+
+            with open(outfname, 'w') as outfile:
                 for p in params:
                     print(*p, file=outfile)
 
