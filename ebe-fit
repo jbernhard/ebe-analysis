@@ -34,6 +34,7 @@ def main():
 
 
     for f in args.files:
+        # detect reading from stdin / files
         if f == '-':
             fname = sys.stdin
             basename = 'stdin'
@@ -42,12 +43,16 @@ def main():
             basename = f.split('.')[0]
 
 
+        # init. the MLE parameter generator
         params = stats.fit_file(fname, dist=args.dist, usecols=args.cols)
 
+
+        # write results to stdout
         if args.output == '-':
             for p in params:
                 print(*p)
 
+        # write results to files
         else:
             outfname = args.output.format(name=basename)
             print(f,'->',outfname)
