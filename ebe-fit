@@ -13,6 +13,11 @@ def main():
     parameters.  Output format:  'shapes loc scale', where each line of
     parameters corresponds to a data column.''')
 
+    parser.add_argument('-o','--output', default='-', metavar='format',
+            help='''Output file format.  Omit or use '-' to write to stdout.  If
+            not stdout, output files will be created for each input file.  The
+            pattern '{name}' will be replaced by the basename of the input
+            file.''')
     parser.add_argument('-c','--cols', type=intlist, default=None,
             help='''Columns to fit, comma separated.  Count from 0.
             Default: all.''')
@@ -29,9 +34,25 @@ def main():
 
 
     for f in args.files:
-        fname = sys.stdin if f == '-' else f
-        for params in stats.fit_file(fname,dist=args.dist,usecols=args.cols):
-            print(*params)
+        if f == '-':
+            fname = sys.stdin
+            basename = 'stdin'
+        else:
+            fname = f
+            basename = f.split('.')[0]
+
+
+        params = stats.fit_file(fname, dist=args.dist, usecols=args.cols)
+
+        if args.output == '-':
+            for p in params:
+                print(*p)
+
+        else:
+            print(f)
+            with open(args.output.format(name=basename), 'w') as outfile:
+                for p in params:
+                    print(*p, file=outfile)
 
 
 if __name__ == "__main__":
