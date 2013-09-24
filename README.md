@@ -16,7 +16,7 @@ The real work occurs in the classes located in `lib/`.  This makes it trivial to
 In "standard" format, each particle is represented by four quantities:  Monte Carlo ID, pT, phi, eta.  This is roughly 75% smaller on disk than UrQMD files.
 
 * **Minimal dependencies:**
-Python 3 and numpy.
+Python 3 and NumPy; SciPy for statistical functions; Matplotlib for plotting.
 
 
 
@@ -83,6 +83,15 @@ magnitudes or vectors as requested.
 ### Calculating multiplicities
 
 `ebe-multiplicity` reads events and calculates multiplicities event-by-event.
+
+### Fitting
+
+`ebe-fit` fits flow distributions to the SciPy generalized gamma distribution and multiplicity distributions to Gaussians (i.e. calculate mean and standard
+deviation).  Basic usage is
+
+    ebe-fit {gengamma,norm} [files ...]
+
+where the first argument specifies the type of fit.
 
 ### Filtering particles
 
@@ -187,7 +196,3 @@ About 3.1 times faster, and the output is identical.
 * **Improved flow calculations:**
     * Choice of method, event-plane or two-particle correlation.
     * ATLAS-style unfolding.
-    * Fits to flow coefficient distributions.
-
-* **Plotting:**
-Shortcuts for making common plots with matplotlib.
