@@ -193,6 +193,8 @@ About 3.1 times faster, and the output is identical.
 
 ## To do
 
-* **Improved flow calculations:**
-    * Choice of method, event-plane or two-particle correlation.
-    * ATLAS-style unfolding.
+* Flows: two-particle correlation method, ATLAS-style unfolding.
+
+* Plotting shortcuts.
+
+* Support for UrQMD 3.3 format.
