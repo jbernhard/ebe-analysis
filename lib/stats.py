@@ -104,3 +104,111 @@ def describe(data):
     data = np.asarray(data)
 
     return (data.mean(), data.std())
+
+
+
+class ATLASData:
+    """
+    Read, store, and provide methods for ATLAS flow data.
+
+    Usage
+    -----
+    >>> ATLASData(fname)
+
+    where fname is a file containing columns v_n, p(v_n), stat, syshigh, syslow.
+
+    The primary public methods are fit() and plot().
+
+    """
+
+    def __init__(self,fname):
+        # read and store data
+        for attr,col in zip(
+                ('v','pv','stat','syshigh','syslow'),
+                np.loadtxt(fname,unpack=True)):
+            setattr(self, attr, col)
+
+        self._fit = None
+
+
+    @staticmethod
+    def add_quadrature(v1,v2):
+        """ Add two errors in quadrature. """
+        return np.sqrt(v1*v1 + v2*v2)
+
+    def errhigh(self):
+        """ High stat+sys error. """
+        return self.add_quadrature(self.stat, self.syshigh)
+
+    def errlow(self):
+        """ Low stat+sys error. """
+        return self.add_quadrature(self.stat, self.syslow)
+
+    def errmax(self):
+        """ stat+sys error, max of high and low. """
+        return np.maximum(self.errhigh(), self.errlow())
+
+
+    def fit(self,retry=10,errtol=10.0):
+        """
+        Fit data to a generalized gamma distribution.
+
+        Optional arguments
+        ------------------
+        retry -- maximum number of times to retry the fit
+        errtol -- maximum error tolerance
+
+        Returns
+        -------
+        popt, pcov, perr
+
+        popt -- optimal parameters from scipy.optimize.curve_fit
+        pcov -- covariance of popt from scipy.optimize.curve_fit
+        perr -- total squared error with popt
+
+        """
+
+        # don't redo the fit
+        if self._fit is None:
+            # retry the fit until the error tolerance is satisfied
+            for i in range(retry):
+                try:
+                    # scipy least squares fit
+                    popt, pcov = curve_fit(gengamma.pdf, self.v, self.pv,
+                            p0=gengamma_start(), sigma=self.errmax())
+
+                except RuntimeError:
+                    # retry on error
+                    continue
+
+                else:
+                    # total squared error
+                    perr = np.sum(np.square(
+                        (gengamma.pdf(self.v, *popt) - self.pv)/self.errmax()
+                        ))
+
+                    # retry if error is too large
+                    if perr < errtol:
+                        self._fit = (popt,pcov,perr)
+                        break
+
+            else:
+                # the fit failed for all retries
+                raise RuntimeError('fit did not succeed after ' + str(retry) +
+                ' iterations')
+
+        return self._fit
+
+
+    def plot(self):
+        """ Fit and plot the data. """
+
+        x = np.linspace(0,self.v.max(),100)
+
+        params, *rest = self.fit()
+
+        plt.semilogy(x, gengamma.pdf(x, *params))
+        plt.errorbar(self.v, self.pv,
+                yerr=(self.errlow(), self.errhigh()),
+                fmt='go')
+        plt.show()
