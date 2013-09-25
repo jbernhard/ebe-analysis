@@ -3,18 +3,32 @@ Statistics.
 """
 
 
+from itertools import starmap
+
 import numpy as np
+import matplotlib.pyplot as plt
+from numpy.random import uniform
 from scipy.stats import gengamma
+from scipy.optimize import curve_fit
 
 
-"""
-Set default starting parameters for fitting a generalized gamma distribution.
+def gengamma_start(data=None):
+    """
+    Generate random starting parameters for fitting a generalized gamma
+    distribution.  Randomization is necessary to avoid systematic convergence
+    problems.
 
-These parameters are sensible for ATLAS v_n distributions.
+    Parameter ranges are sensible for v_n distributions.
 
-Order:  (a, c, loc, scale)  where a,c are shape params.
-"""
-gengamma._fitstart = lambda data: (1.0, 2.0, 0.0, 0.1)
+    Returns
+    -------
+    (a, c, loc, scale) -- where a,c are shape params.
+
+    """
+
+    return tuple(starmap(uniform, ((0.1,2.0),(1.0,5.0),(-0.1,0.1),(0.01,0.3))))
+
+gengamma._fitstart = gengamma_start
 
 
 def fit_file(fname,dist='gengamma',**kwargs):
