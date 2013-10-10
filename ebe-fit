@@ -43,8 +43,9 @@ def main():
             basename = f.split('.')[0]
 
 
-        # init. the MLE parameter generator
-        params = stats.fit_file(fname, dist=args.dist, usecols=args.cols)
+        # fit each column
+        params = (d.fit() for d in stats.RawData.from_table(fname,
+            dist=args.dist, usecols=args.cols))
 
 
         # write results to stdout
