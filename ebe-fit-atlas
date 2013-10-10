@@ -1,0 +1,47 @@
+#!/usr/bin/env python3
+
+
+import argparse
+import re
+
+from lib import stats
+
+
+def main():
+    parser = argparse.ArgumentParser(description='''Find least-squares
+    distribution parameters for ATLAS data.  Output format:  '<tag> shapes loc
+    scale' where tag is an optional identifier string containing the flow order
+    and centrality.''')
+
+    parser.add_argument('-n','--notag', action='store_false', dest='tag',
+            help='''Do not print tags.''')
+    parser.add_argument('dist', choices=['gengamma','norm'],
+            help='''Distribution to fit, either generalized gamma or Gaussian
+            [normal].''')
+    parser.add_argument('files', nargs='+',
+            help='''File[s] to fit.  Multiple files are processed
+            sequentially.''')
+
+    args = parser.parse_args()
+
+
+    for f in args.files:
+        # read and fit file
+        params = stats.BinnedData.from_file(f,dist=args.dist).fit()
+
+        # tag if requested
+        if args.tag:
+            # REs for vn and centrality
+            for p in (r'v([0-9])',r'([0-9]{1,2}-[0-9]{1,2})'):
+                try:
+                    m = re.search(p,f).group(1)
+                except AttributeError:
+                    pass
+                else:
+                    print(m, end=' ')
+
+        print(*params)
+
+
+if __name__ == "__main__":
+    main()
