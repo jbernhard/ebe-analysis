@@ -165,109 +165,123 @@ class RawData:
         plt.show()
 
 
-
-class ATLASData:
+class BinnedData:
     """
-    Read, store, and provide methods for ATLAS flow data.
+    Store unbinned data and provide related methods.
 
-    Usage
-    -----
-    >>> ATLASData(fname)
+    Arguments
+    ---------
+    data -- array-like with 2-5 columns, see below
+    dist -- name of scipy distribution which is expected to describe the data
 
-    where fname is a file containing columns v_n, p(v_n), stat, syshigh, syslow.
+    The first two columns should contain x and y values; the remaining column[s]
+    should contain errors:
 
-    The primary public methods are fit() and plot().
+    1 error column  -- symmetrical errors
+    2 error columns -- high and low errors
+    3 error columns -- stat, syshigh, syslow errors [to be added in quadrature]
 
     """
 
-    def __init__(self,fname):
-        # read and store data
-        for attr,col in zip(
-                ('v','pv','stat','syshigh','syslow'),
-                np.loadtxt(fname,unpack=True)):
-            setattr(self, attr, col)
+    def __init__(self,data,dist='gengamma'):
+        self.dist = validate_dist(dist)
 
-        self._fit = None
+        data = np.asarray(data).T
+
+        try:
+            self.x = data[0]
+            self.y = data[1]
+        except IndexError:
+            raise ValueError('data must have 2-5 columns')
+
+        ncol = data.shape[0]
+
+        if ncol == 2:
+            self.errhigh = self.errlow = None
+
+        elif ncol == 3:
+            self.errhigh = self.errlow = data[2]
+
+        elif ncol == 4:
+            self.errhigh, self.errlow = data[2:]
+
+        elif ncol == 5:
+            stat, *sys = data[2:]
+            self.errhigh, self.errlow = (np.sqrt(stat*stat + s*s) for s in sys)
+
+        else:
+            raise ValueError('data must have 2-5 columns')
 
 
-    @staticmethod
-    def add_quadrature(v1,v2):
-        """ Add two errors in quadrature. """
-        return np.sqrt(v1*v1 + v2*v2)
-
-    def errhigh(self):
-        """ High stat+sys error. """
-        return self.add_quadrature(self.stat, self.syshigh)
-
-    def errlow(self):
-        """ Low stat+sys error. """
-        return self.add_quadrature(self.stat, self.syslow)
-
-    def errmax(self):
-        """ stat+sys error, max of high and low. """
-        return np.maximum(self.errhigh(), self.errlow())
-
-
-    def fit(self,retry=10,errtol=10.0):
+    @classmethod
+    def from_file(cls,data,dist='gengamma',**kwargs):
         """
-        Fit data to a generalized gamma distribution.
+        Create an instance from a tabular data file.  Columns follow the same
+        format as in __init__.
 
-        Optional arguments
-        ------------------
-        retry -- maximum number of times to retry the fit
-        errtol -- maximum error tolerance
+        Arguments
+        ---------
+        data -- file object, filename, or generator containing tabular data
+        dist -- same as for __init__
+        kwargs -- passed to np.loadtxt
+
+        """
+
+        kwargs.update(unpack=False)
+        data = np.loadtxt(data,**kwargs)
+
+        return cls(data,dist=dist)
+
+
+    def describe(self):
+        """ Calculate mean and standard deviation. """
+
+        w = np.sum(self.y)
+
+        mu = np.sum(self.x*self.y) / w
+        sigma = np.sqrt( np.sum( np.square(self.x - mu) * self.y) / w )
+
+        return mu, sigma
+
+
+    def fit(self):
+        """
+        Calculate least-squares distribution parameters.
 
         Returns
         -------
-        popt, pcov, perr
-
-        popt -- optimal parameters from scipy.optimize.curve_fit
-        pcov -- covariance of popt from scipy.optimize.curve_fit
-        perr -- total squared error with popt
+        *shapes, loc, scale -- as produced by scipy.optimize.curve_fit
 
         """
 
-        # don't redo the fit
-        if self._fit is None:
-            # retry the fit until the error tolerance is satisfied
-            for i in range(retry):
-                try:
-                    # scipy least squares fit
-                    popt, pcov = curve_fit(gengamma.pdf, self.v, self.pv,
-                            p0=gengamma_start(), sigma=self.errmax())
+        if self.dist is norm:
+            return self.describe()
 
-                except RuntimeError:
-                    # retry on error
-                    continue
+        p0 = self.dist._fitstart(self.x,self.y) if self.dist is gengamma \
+                else None
 
-                else:
-                    # total squared error
-                    perr = np.sum(np.square(
-                        (gengamma.pdf(self.v, *popt) - self.pv)/self.errmax()
-                        ))
+        try:
+            sigma = np.maximum(self.errhigh,self.errlow)
+        except TypeError:
+            sigma = None
 
-                    # retry if error is too large
-                    if perr < errtol:
-                        self._fit = (popt,pcov,perr)
-                        break
+        popt, pcov = curve_fit(self.dist.pdf, self.x, self.y,
+                p0=p0, sigma=sigma)
 
-            else:
-                # the fit failed for all retries
-                raise RuntimeError('fit did not succeed after ' + str(retry) +
-                ' iterations')
-
-        return self._fit
+        return tuple(popt.tolist())
 
 
     def plot(self):
         """ Fit and plot the data. """
 
-        x = np.linspace(0,self.v.max(),100)
+        X = np.linspace(0,self.x.max(),100)
 
-        params, *rest = self.fit()
+        params = self.fit()
 
-        plt.semilogy(x, gengamma.pdf(x, *params))
-        plt.errorbar(self.v, self.pv,
-                yerr=(self.errlow(), self.errhigh()),
-                fmt='go')
+        yerr = self.errlow if self.errlow is self.errhigh \
+                else (self.errlow, self.errhigh)
+
+        plt.errorbar(self.x, self.y, yerr=yerr, fmt='o')
+        plt.plot(X, self.dist.pdf(X, *params))
+
         plt.show()
