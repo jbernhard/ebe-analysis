@@ -53,6 +53,17 @@ def rms(x,y=None):
         return np.sqrt( np.sum(y*np.square(x)) / np.sum(y) )
 
 
+def validate_dist(dist):
+    """ Convert a string to a scipy distribution object. """
+
+    try:
+        dist = eval(dist)
+    except NameError:
+        raise ValueError('invalid distribution: ' + dist)
+
+    return dist
+
+
 """
 Starting parameters for fitting the generalized gamma distribution.
 
@@ -79,13 +90,7 @@ class RawData:
     """
 
     def __init__(self,data,dist='gengamma',maxstd=10):
-        # validate the distribution
-        try:
-            dist = eval(dist)
-        except NameError:
-            raise ValueError('invalid distribution: ' + dist)
-        else:
-            self.dist = dist
+        self.dist = validate_dist(dist)
 
         # flatten
         data = np.ravel(data)
