@@ -3,6 +3,8 @@ Statistics.
 """
 
 
+from functools import partial
+
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy.stats import gengamma, norm
@@ -75,6 +77,8 @@ order:  a, c, loc, scale -- where a,c are shape params.
 
 gengamma._fitstart = lambda *args: (1., 2., 0., rms(*args))
 
+# fix loc = 0 when fitting gengamma
+gengamma.fit = partial(gengamma.fit, floc=0)
 
 class RawData:
     """
@@ -257,18 +261,29 @@ class BinnedData:
         if self.dist is norm:
             return self.describe()
 
-        p0 = self.dist._fitstart(self.x,self.y) if self.dist is gengamma \
-                else None
+        if self.dist is gengamma:
+            # fix location parameter to zero
+            def f(x,*p):
+                return self.dist.pdf(x,p[0],p[1],0,p[-1])
+
+            p0 = self.dist._fitstart(self.x,self.y)
+            p0 = p0[:2] + p0[3:]
+        else:
+            f = self.dist.pdf
+            p0 = None
 
         try:
             sigma = np.maximum(self.errhigh,self.errlow)
         except TypeError:
             sigma = None
 
-        popt, pcov = curve_fit(self.dist.pdf, self.x, self.y,
-                p0=p0, sigma=sigma)
+        popt, pcov = curve_fit(f, self.x, self.y, p0=p0, sigma=sigma)
+        popt = popt.tolist()
 
-        return tuple(popt.tolist())
+        if self.dist is gengamma:
+            popt.insert(2,0)
+
+        return tuple(popt)
 
 
     def plot(self):
