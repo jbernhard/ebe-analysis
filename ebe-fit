@@ -21,6 +21,10 @@ def main():
     parser.add_argument('-c','--cols', type=intlist, default=None,
             help='''Columns to fit, comma separated.  Count from 0.
             Default: all.''')
+    parser.add_argument('-k','--ks', type=float, nargs='+',
+            help='''Perform KS test instead of parameter fit.  Must provide
+            correct number of dist. parameters:  *shapes, loc, scale.  Output:
+            KS-stat p-value.''')
     
     parser.add_argument('dist', choices=['gengamma','norm'],
             help='''Distribution to fit, either generalized gamma or Gaussian
@@ -44,8 +48,9 @@ def main():
 
 
         # fit each column
-        params = (d.fit() for d in stats.RawData.from_table(fname,
-            dist=args.dist, usecols=args.cols))
+        params = (d.fit() if args.ks is None else d.ks(*args.ks) for d in
+                stats.RawData.from_table(fname, dist=args.dist,
+                    usecols=args.cols))
 
 
         # write results to stdout

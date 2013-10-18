@@ -9,7 +9,7 @@ import math
 import numpy as np
 import matplotlib.pyplot as plt
 from scipy import special
-from scipy.stats import gengamma, norm
+from scipy.stats import kstest, gengamma, norm
 from scipy.optimize import curve_fit
 
 
@@ -174,6 +174,24 @@ class RawData:
         """ Calculate mean and standard deviation. """
 
         return self.data.mean(), self.data.std()
+
+
+    def ks(self,*args,**kwargs):
+        """
+        Perform the Kolmogorov-Smirnov test for goodness of fit.
+
+        Arguments
+        ---------
+        *args -- dist. parameters to test against
+        **kwargs -- for scipy.stats.kstest
+
+        Returns
+        -------
+        D,p -- KS test statistic, corresponding p-value
+
+        """
+
+        return kstest(self.data,self.dist.name,args=args,**kwargs)
 
 
     def fit(self):
