@@ -83,40 +83,6 @@ gengamma._fitstart = lambda *args: (1., 2., 0., rms(*args))
 gengamma.fit = partial(gengamma.fit, floc=0)
 
 
-def gengamma_kl(p,p0,gamma=special.gamma,psi=special.psi,log=math.log):
-    """
-    Calculate the Kullback-Leibler divergence between two generalized gamma
-    distributions with parameters p and p0.
-
-    The distributions must have the same location parameter.
-
-    p0 should be the "true" parameters and p the approximate parameters.
-
-    Arguments
-    ---------
-    p,p0 -- sets of gengamma parameters (a,c,loc,scale)
-
-    loc is ignored and may be omitted.
-
-    """
-
-    try:
-        a,c,loc,s = p
-    except ValueError:
-        a,c,s = p
-
-    try:
-        a0,c0,loc0,s0 = p0
-    except ValueError:
-        a0,c0,s0 = p0
-
-    return -a0 \
-            + ((s0/s)**c * gamma(a0 + c/c0))/gamma(a0) \
-            + a*c*log(s/s0) \
-            + log((c0*gamma(a))/(c*gamma(a0))) \
-            + (a0 - (a*c)/c0)*psi(a0)
-
-
 class RawData:
     """
     Store raw (unbinned) data and provide related methods.
