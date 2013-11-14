@@ -58,11 +58,11 @@ def rms(x,y=None):
 
 
 def validate_dist(dist):
-    """ Convert a string to a scipy distribution object. """
+    """ Convert a string to a scipy.stats distribution object. """
 
     try:
-        dist = eval(dist)
-    except NameError:
+        dist = getattr(spst,dist)
+    except AttributeError:
         raise ValueError('invalid distribution: ' + dist)
 
     return dist
