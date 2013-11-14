@@ -83,6 +83,51 @@ spst.gengamma._fitstart = lambda *args: (1., 2., 0., rms(*args))
 spst.gengamma.fit = partial(spst.gengamma.fit, floc=0)
 
 
+class rice_gen(spst.rv_continuous):
+    """
+    The Rice / Bessel-Gaussian distribution with standard parameterization.
+    Overrides scipy.stats.rice.
+
+    Parameters are named for flow distributions:
+
+        vrp -- v_n reaction-plane
+        dv -- delta v_n
+
+    The PDF is
+
+        f(v;vrp,dv) = v/dv^2 * exp(-(v^2+vrp^2)/(2*dv^2)) * I[0](v*vrp/dv^2)
+
+    for v, vrp, dv > 0.
+
+    The scipy location and scale parameters should be left fixed at defaults.
+    The fit method is set to do this automatically and only returns vrp,dv.
+    This is a bit of a hack but should be transparent to the user.
+
+    """
+
+    def _pdf(self, v, vrp, dv, exp=np.exp, i0=spsp.i0):
+        dv2 = dv*dv
+        return v / dv2 * exp(-0.5*(v*v+vrp*vrp)/dv2) * i0(v*vrp/dv2)
+
+    def _logpdf(self, v, vrp, dv, log=np.log, i0=spsp.i0):
+        dv2 = dv*dv
+        return log(v/dv2) - 0.5*(v*v + vrp*vrp)/dv2 + log(i0(v*vrp/dv2))
+
+    def _fitstart(self,data):
+        """ Rough starting fit parameters, based on ATLAS results. """
+
+        mean = data.mean()
+        std = data.std()
+        return np.sqrt(mean**2-std**2), std, 0, 1
+
+    def fit(self, data, *args, **kwargs):
+        """ Fit with fixed location and scale. """
+
+        return super().fit(data,floc=0,fscale=1)[:2]
+
+spst.rice = rice_gen(a=0.0, name="rice", shapes="vrp,dv")
+
+
 class RawData:
     """
     Store raw (unbinned) data and provide related methods.
@@ -96,7 +141,7 @@ class RawData:
 
     """
 
-    def __init__(self,data,dist='gengamma',maxstd=10):
+    def __init__(self,data,dist='rice',maxstd=10):
         self.dist = validate_dist(dist)
 
         # flatten
@@ -107,7 +152,7 @@ class RawData:
 
 
     @classmethod
-    def from_table(cls,data,dist='gengamma',**kwargs):
+    def from_table(cls,data,dist='rice',**kwargs):
         """
         Create several RawData instances from the columns of tabular data.  Each
         column is expected to correspond to a separate data set.
