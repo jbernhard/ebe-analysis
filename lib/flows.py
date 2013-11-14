@@ -177,8 +177,7 @@ class Flows:
     ---------
     event -- list of particles
     vnmin,vnmax -- range of v_n
-    vector -- whether the iterable of the instance contains the flow vectors or
-              magnitudes
+    vector -- whether iter(Flows) is vector components or magnitudes
 
     If the event is any false value, the instance will be created with all flows
     set to zero.  Events can be added later with add_event().
