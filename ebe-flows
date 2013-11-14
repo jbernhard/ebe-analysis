@@ -13,7 +13,7 @@ def main():
     parser.add_argument('-n', '--vn', type=int, nargs=2,
         metavar=('min','max'), default=[2,6],
         help='Range of v_n to calculate [two args].  Default: 2 6.')
-    parser.add_argument('-v', '--vectors', action='store_true',
+    parser.add_argument('-v', '--vector', action='store_true',
         help='''Output flow vector components instead of magnitudes:
         v_min_x v_min_y ... v_max_x v_max_y''')
     parser.add_argument('-d', '--diff', nargs='?',
@@ -28,10 +28,6 @@ def main():
 
     args = parser.parse_args()
 
-    # set flow method based on args
-    # create shortcut function to call the method
-    method = 'vectorchain' if args.vectors else 'magnitudes'
-    flowcalc = lambda f: getattr(f,method)()
 
     vnmin,vnmax = args.vn
 
@@ -48,8 +44,8 @@ def main():
 
     # event-by-event flows
     else:
-        for fl in flows.event_by_event(events,vnmin,vnmax):
-            print(*flowcalc(fl))
+        for fl in flows.event_by_event(events,vnmin,vnmax,vector=args.vector):
+            print(*fl)
 
 
 if __name__ == "__main__":

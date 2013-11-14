@@ -17,7 +17,7 @@ import math
 import numpy as np
 
 
-def event_by_event(events,vnmin,vnmax):
+def event_by_event(events,vnmin,vnmax,**kwargs):
     """
     Calculate flows event-by-event.
 
@@ -25,6 +25,7 @@ def event_by_event(events,vnmin,vnmax):
     ---------
     events -- iterable of events
     vnmin,vnmax -- range of v_n
+    kwargs -- passed to Flows
 
     Yields
     ------
@@ -33,7 +34,7 @@ def event_by_event(events,vnmin,vnmax):
     """
 
     for e in events:
-        yield Flows(e,vnmin,vnmax)
+        yield Flows(e,vnmin,vnmax,**kwargs)
 
 
 def average(events,vnmin,vnmax):
@@ -176,18 +177,21 @@ class Flows:
     ---------
     event -- list of particles
     vnmin,vnmax -- range of v_n
+    vector -- whether the iterable of the instance contains the flow vectors or
+              magnitudes
 
     If the event is any false value, the instance will be created with all flows
     set to zero.  Events can be added later with add_event().
 
     """
 
-    def __init__(self,event,vnmin,vnmax):
+    def __init__(self,event,vnmin,vnmax,vector=False):
         assert vnmax >= vnmin > 0
 
         # store attributes
         self.vnmin = vnmin
         self.vnmax = vnmax
+        self.vector = vector
         self.multiplicity = 0
 
         # init. flow vectors
@@ -195,6 +199,10 @@ class Flows:
         self.vy = [0.0] * (vnmax - vnmin + 1)
 
         self.add_event(event)
+
+
+    def __iter__(self):
+        return self.vectorchain() if self.vector else self.magnitudes()
 
 
     def add_event(self,event,array=np.array,cos=np.cos,sin=np.sin):
