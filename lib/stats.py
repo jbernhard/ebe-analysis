@@ -8,9 +8,9 @@ import math
 
 import numpy as np
 import matplotlib.pyplot as plt
-from scipy import special
-from scipy.stats import kstest, gengamma, norm
-from scipy.optimize import curve_fit
+import scipy.special as spsp
+import scipy.stats as spst
+import scipy.optimize as spop
 
 
 
@@ -77,10 +77,10 @@ order:  a, c, loc, scale -- where a,c are shape params.
 
 """
 
-gengamma._fitstart = lambda *args: (1., 2., 0., rms(*args))
+spst.gengamma._fitstart = lambda *args: (1., 2., 0., rms(*args))
 
 # fix loc = 0 when fitting gengamma
-gengamma.fit = partial(gengamma.fit, floc=0)
+spst.gengamma.fit = partial(spst.gengamma.fit, floc=0)
 
 
 class RawData:
@@ -157,7 +157,7 @@ class RawData:
 
         """
 
-        return kstest(self.data,self.dist.name,args=args,**kwargs)
+        return spst.kstest(self.data,self.dist.name,args=args,**kwargs)
 
 
     def fit(self):
@@ -170,7 +170,7 @@ class RawData:
 
         """
 
-        if self.dist is norm:
+        if self.dist is spst.norm:
             return self.describe()
         else:
             return self.dist.fit(self.data)
@@ -279,10 +279,10 @@ class BinnedData:
 
         """
 
-        if self.dist is norm:
+        if self.dist is spst.norm:
             return self.describe()
 
-        if self.dist is gengamma:
+        if self.dist is spst.gengamma:
             # fix location parameter to zero
             def f(x,*p):
                 return self.dist.pdf(x,p[0],p[1],0,p[-1])
@@ -298,10 +298,10 @@ class BinnedData:
         except TypeError:
             sigma = None
 
-        popt, pcov = curve_fit(f, self.x, self.y, p0=p0, sigma=sigma)
+        popt, pcov = spop.curve_fit(f, self.x, self.y, p0=p0, sigma=sigma)
         popt = popt.tolist()
 
-        if self.dist is gengamma:
+        if self.dist is spst.gengamma:
             popt.insert(2,0)
 
         return tuple(popt)
