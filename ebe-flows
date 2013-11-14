@@ -11,8 +11,8 @@ def main():
         standard particle info.  Default output format: v_min ... v_max''')
 
     parser.add_argument('-n', '--vn', type=int, nargs=2,
-        metavar=('min','max'), default=[2,6],
-        help='Range of v_n to calculate [two args].  Default: 2 6.')
+        metavar=('min','max'), default=[2,4],
+        help='Range of v_n to calculate [two args].  Default: 2 4.')
     parser.add_argument('-v', '--vector', action='store_true',
         help='''Output flow vector components instead of magnitudes:
         v_min_x v_min_y ... v_max_x v_max_y''')
