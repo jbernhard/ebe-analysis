@@ -60,7 +60,7 @@ def average(events,vnmin,vnmax):
     return fl
 
 
-def differential(events,vnmin,vnmax,width=.1,bufsize=100000):
+def differential(events,vnmin,vnmax,width=.1,bufsize=100000,floor=math.floor):
     """
     Calculate average differential (pT) flows for a set of events.
 
@@ -97,8 +97,6 @@ def differential(events,vnmin,vnmax,width=.1,bufsize=100000):
                      where pT_mid is the middle pT value of the bin
 
     """
-
-    floor = math.floor
 
     # flatten events
     particles = itertools.chain.from_iterable(events)
