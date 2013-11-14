@@ -16,15 +16,15 @@ def main():
     parser.add_argument('-v', '--vector', action='store_true',
         help='''Output flow vector components instead of magnitudes:
         v_min_x v_min_y ... v_max_x v_max_y''')
-    parser.add_argument('-d', '--diff', nargs='?',
-            metavar='width', type=float, const=0.1, default=0,
-            help='''Calculate average differential (pT) flows instead of
-            event-by-event flows.  The optional argument `width' sets the pT bin
-            width in GeV, default 0.1.  Output format:  pT_mid N_particles v_min
-            ... v_max, where pT_mid is the middle pT value of the bin.''')
-    parser.add_argument('--avg', action='store_true',
-        help='''Calculate average flows over all events instead of
-        event-by-event.''')
+    #parser.add_argument('-d', '--diff', nargs='?',
+    #        metavar='width', type=float, const=0.1, default=0,
+    #        help='''Calculate average differential (pT) flows instead of
+    #        event-by-event flows.  The optional argument `width' sets the pT bin
+    #        width in GeV, default 0.1.  Output format:  pT_mid N_particles v_min
+    #        ... v_max, where pT_mid is the middle pT value of the bin.''')
+    #parser.add_argument('--avg', action='store_true',
+    #    help='''Calculate average flows over all events instead of
+    #    event-by-event.''')
 
     args = parser.parse_args()
 
@@ -33,19 +33,20 @@ def main():
 
     events = events_from_files(**vars(args))
 
-    # differential flows
-    if args.diff:
-        for pT,fl in flows.differential(events,vnmin,vnmax,args.diff):
-            print(pT,fl.multiplicity,*flowcalc(fl))
+    ## differential flows
+    #if args.diff:
+    #    for pT,fl in flows.differential(events,vnmin,vnmax,args.diff):
+    #        print(pT,fl.multiplicity,*flowcalc(fl))
 
-    # average flows
-    elif args.avg:
-        print(*flowcalc(flows.average(events,vnmin,vnmax)))
+    ## average flows
+    #elif args.avg:
+    #    print(*flowcalc(flows.average(events,vnmin,vnmax)))
 
-    # event-by-event flows
-    else:
-        for fl in flows.event_by_event(events,vnmin,vnmax,vector=args.vector):
-            print(*fl)
+    ## event-by-event flows
+    #else:
+
+    for fl in flows.event_by_event(events,vnmin,vnmax,vector=args.vector):
+        print(*fl)
 
 
 if __name__ == "__main__":
