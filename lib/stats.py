@@ -113,6 +113,10 @@ class rice_gen(spst.rv_continuous):
         dv2 = dv*dv
         return log(v/dv2) - 0.5*(v*v + vrp*vrp)/dv2 + log(i0(v*vrp/dv2))
 
+    def _argcheck(self,*args):
+        vrp,dv = args
+        return (vrp >= 0) & (dv > 0)
+
     def _fitstart(self,data):
         """ Rough starting fit parameters, based on ATLAS results. """
 
