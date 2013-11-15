@@ -31,8 +31,6 @@ def main():
 
     vnmin,vnmax = args.vn
 
-    print('#',*range(vnmin,vnmax+1))
-
     events = events_from_files(**vars(args))
 
     ## differential flows
