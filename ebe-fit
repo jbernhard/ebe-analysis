@@ -2,6 +2,7 @@
 
 
 import argparse
+import itertools
 import sys
 
 from lib.parse import intlist
@@ -10,8 +11,7 @@ from lib import stats
 
 def main():
     parser = argparse.ArgumentParser(description='''Find MLE distribution
-    parameters.  Output format:  'shapes loc scale', where each line of
-    parameters corresponds to a data column.''')
+    parameters.  Output format:  '*shapes loc scale', for each column.''')
 
     parser.add_argument('-o','--output', default='-', metavar='format',
             help='''Output file format.  Omit or use '-' to write to stdout.  If
@@ -47,15 +47,19 @@ def main():
 
 
         # fit each column
-        params = (d.fit() if args.ks is None else d.ks(*args.ks) for d in
-                stats.RawData.from_table(fname, dist=args.dist,
-                    usecols=args.cols))
+        data = stats.RawData.from_table(fname, dist=args.dist, usecols=args.cols)
+
+        if args.ks is None:
+            method = lambda d: d.fit()
+        else:
+            method = lambda d: d.ks(*args.ks)
+
+        params = itertools.chain.from_iterable(map(method, data))
 
 
         # write results to stdout
         if args.output == '-':
-            for p in params:
-                print(*p)
+            print(*params)
 
         # write results to files
         else:
@@ -63,8 +67,7 @@ def main():
             print(f,'->',outfname)
 
             with open(outfname, 'w') as outfile:
-                for p in params:
-                    print(*p, file=outfile)
+                print(*params, file=outfile)
 
 
 if __name__ == "__main__":
