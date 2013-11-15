@@ -1,0 +1,37 @@
+#!/usr/bin/env python3
+
+
+import argparse
+import sys
+
+import numpy as np
+
+from lib import stats
+
+
+def main():
+    parser = argparse.ArgumentParser(description='''Unfold flow distribution
+            parameters by reducing width according to multiplicity.''')
+
+    parser.add_argument('mult',
+            help='''File containing multiplicity data,
+            e.g. from ebe-multiplicity.''')
+    parser.add_argument('params', nargs='?', default=sys.stdin,
+            help='''File containing Rice distribution parameters,
+            e.g. from ebe-fit.  Omit to read from stdin.''')
+
+    args = parser.parse_args()
+
+
+    mult = np.loadtxt(args.mult, usecols=(0,))
+    params = np.loadtxt(args.params, ndmin=2).T
+
+    for i in range(1,len(params)+1,2):
+        params[i] = stats.unfold(params[i],mult)
+
+    for l in params.T:
+        print(*l)
+
+
+if __name__ == "__main__":
+    main()

@@ -366,3 +366,25 @@ class BinnedData:
         plt.plot(X, self.dist.pdf(X, *params))
 
         plt.show()
+
+
+
+def unfold(dv=None,M=None):
+    """
+    Unfold flow distributions by reducing width according to multiplicity.
+
+    Arguments
+    ---------
+    dv -- array-like of Rice distribution widths
+    M -- array-like of multiplicities
+
+    Returns
+    -------
+    unfolded dv
+
+    """
+
+    dv = np.asarray(dv)
+    M = np.asarray(M)
+
+    return np.sqrt(np.maximum(dv*dv - 0.5/M,1e-8))
