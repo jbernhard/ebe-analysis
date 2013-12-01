@@ -285,6 +285,63 @@ def particles_from_urqmd(files=None):
             )
 
 
+def particles_from_oscar(files=None):
+    """
+    Generate Particle objects from OSCAR files.  Yield None to separate events.
+
+    Arguments
+    ---------
+    files -- list of filenames to read
+
+    Yields
+    ------
+    Particle() or None
+
+    """
+
+    from math import sqrt, atan2, log
+
+    # use this boolean to keep track of event headers
+    # files should begin with a header
+    header = True
+
+
+    for l in lines(files):
+        # try to extract necessary values
+        try:
+            ipart,ID,px,py,pz,E,m,x,y,z,t = l.split()
+            ID = int(ID)
+            px = float(px)
+            py = float(py)
+            pz = float(pz)
+
+        # exception => this is a header line
+        except ValueError:
+            # separate events if necessary
+            if not header:
+                header = True
+                yield
+
+        # line was successfully parsed => create a Particle
+        else:
+            # switch out of header mode
+            if header:
+                header = False
+
+            # magnitude of momentum vector
+            pmag = sqrt(px*px + py*py + pz*pz)
+
+            # calculate the std. quantities ID,pT,phi,eta and create a Particle
+            # this is a little ugly but it's faster than pre-calculating and
+            # storing in four temporary objects
+            yield Particle(
+                ID,   # ID
+                sqrt(px*px + py*py),   # pT
+                atan2(py,px),   # phi
+                0.5*log((pmag+pz)/max(pmag-pz,1e-10))   # eta
+            )
+
+
 def particles_from_std(files=None):
     """
     Generate Particle objects from files containing standard particle info.
