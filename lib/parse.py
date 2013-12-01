@@ -19,6 +19,8 @@ with ebeinput.events_from_files, e.g.
 from argparse import ArgumentParser, ArgumentTypeError, Action
 from functools import partial
 
+from .ebeinput import INPUT_FORMATS
+
 
 # create a parent parser to hold generic arguments
 # disable help, else its children will have redundant help messages
@@ -31,7 +33,7 @@ parent_parser.add_argument('files', nargs='*',
 
 # optional arg: file format
 parent_parser.add_argument('-f', '--format', dest='inputformat',
-    choices=['auto','std','urqmd'], default='auto',
+    choices=INPUT_FORMATS, default=INPUT_FORMATS[0],
     help='Input format, default:  %(default)s.')
 
 

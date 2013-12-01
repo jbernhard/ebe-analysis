@@ -371,11 +371,8 @@ def particles_from_std(files=None):
             yield Particle( int(ID), float(pT), float(phi), float(eta) )
 
 
-# map input format strings to particle generators
-_format_dict = {
-    'std'   : particles_from_std,
-    'urqmd' : particles_from_urqmd
-}
+# available input formats
+INPUT_FORMATS = ['auto','std','urqmd','oscar']
 
 
 def events_from_files(files=None,inputformat='auto',**kwargs):
@@ -395,7 +392,7 @@ def events_from_files(files=None,inputformat='auto',**kwargs):
 
     """
 
-    assert inputformat in ['auto','std','urqmd']
+    assert inputformat in INPUT_FORMATS
 
     # autodetect input format
     # very simple:  if '.f13' is in the first filename, set format to urqmd
@@ -407,7 +404,7 @@ def events_from_files(files=None,inputformat='auto',**kwargs):
             inputformat = 'std'
 
     # set the particle generator based on the input format
-    particles = _format_dict[inputformat](files)
+    particles = eval('particles_from_' + inputformat)(files)
 
     # filter particles if necessary
     if any(kwargs.values()):
