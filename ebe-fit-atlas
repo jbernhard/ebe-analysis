@@ -15,9 +15,8 @@ def main():
 
     parser.add_argument('-n','--notag', action='store_false', dest='tag',
             help='''Do not print tags.''')
-    parser.add_argument('dist', choices=['gengamma','norm'],
-            help='''Distribution to fit, either generalized gamma or Gaussian
-            [normal].''')
+    parser.add_argument('dist',
+            help='''Name of scipy.stats distribution to fit.''')
     parser.add_argument('files', nargs='+',
             help='''File[s] to fit.  Multiple files are processed
             sequentially.''')

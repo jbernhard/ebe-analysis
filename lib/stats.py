@@ -257,7 +257,7 @@ class BinnedData:
 
     """
 
-    def __init__(self,data,dist='gengamma'):
+    def __init__(self,data,dist='rice'):
         self.dist = validate_dist(dist)
 
         data = np.asarray(data).T
@@ -288,7 +288,7 @@ class BinnedData:
 
 
     @classmethod
-    def from_file(cls,data,dist='gengamma',**kwargs):
+    def from_file(cls,data,dist='rice',**kwargs):
         """
         Create an instance from a tabular data file.  Columns follow the same
         format as in __init__.
@@ -338,6 +338,10 @@ class BinnedData:
 
             p0 = self.dist._fitstart(self.x,self.y)
             p0 = p0[:2] + p0[3:]
+        elif self.dist is spst.rice:
+            f = self.dist.pdf
+            mean, std = self.describe()
+            p0 = np.sqrt(mean**2-std**2), std
         else:
             f = self.dist.pdf
             p0 = None
