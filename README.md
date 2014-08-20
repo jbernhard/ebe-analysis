@@ -2,6 +2,9 @@
 
 Tools for analyzing event-by-event heavy-ion collision simulation data.
 
+__NOTE:__  This project is deprecated.  There are some known bugs which I probably will not fix.  All
+functionality will be re-implemented in later work.
+
 
 
 ## Design
