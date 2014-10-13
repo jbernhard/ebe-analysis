@@ -1,9 +1,10 @@
-# EbE analysis
+# EbE analysis (deprecated!)
 
-Tools for analyzing event-by-event heavy-ion collision simulation data.
+This project is abandoned.  I am creating a new toolset, [hic](https://github.com/jbernhard/hic), which is
+faster, more flexible, and _much_ more Pythonic.  This repository remains in existence
 
-__NOTE:__  This project is deprecated.  There are some known bugs which I probably will not fix.  All
-functionality will be re-implemented in later work.
+* to remind myself of my origins
+* and because github repositories are free.
 
 
 
